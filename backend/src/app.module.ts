@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { createDatabaseConfig } from './config/database.config';
 import { GroupsModule } from './groups/groups.module';
+import { BanksModule } from './banks/banks.module';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { GroupsModule } from './groups/groups.module';
 
     // Módulo encargado de la administración de grupos.
     GroupsModule,
+
+    BanksModule,
   ],
 })
 export class AppModule {}
