@@ -7,33 +7,21 @@ import { GroupsService } from './groups.service';
 
 @Module({
   imports: [
-
-    // Registra la entidad Group para que pueda
-    // utilizarse mediante el repositorio de TypeORM.
+    // Registra el repositorio de Group dentro del módulo.
     TypeOrmModule.forFeature([Group]),
-
   ],
-
   controllers: [
-
-    // Controlador encargado de recibir las solicitudes HTTP.
+    // Expone los endpoints HTTP relacionados con grupos.
     GroupsController,
-
   ],
-
   providers: [
-
-    // Servicio donde se implementará la lógica de negocio.
+    // Contiene la lógica de negocio y persistencia.
     GroupsService,
-
   ],
-
   exports: [
-
-    // Exportamos el servicio para reutilizarlo
-    // desde otros módulos del sistema.
+    // Permite reutilizar el servicio desde otros módulos,
+    // como CommissionCalculationsModule.
     GroupsService,
-
   ],
 })
 export class GroupsModule {}
