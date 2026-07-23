@@ -189,6 +189,21 @@ El sistema deberá permitir consultar las liquidaciones registradas y visualizar
 
 ---
 
+### RF15 – Consultar historial de liquidaciones
+
+El sistema deberá permitir consultar el historial de liquidaciones registradas.
+
+La consulta deberá admitir filtros opcionales por:
+
+- Grupo.
+- Banco.
+- Fecha inicial.
+- Fecha final.
+
+Los filtros podrán utilizarse individualmente o combinarse entre sí.
+
+---
+
 ## 4. Reglas de negocio
 
 ### RN01 — Cálculo del porcentaje propio
@@ -266,3 +281,4 @@ Las entidades principales deberán registrar automáticamente su fecha de creaci
 | RF12 | Calcular automáticamente las comisiones | Implementado |
 | RF13 | Conservar valores históricos | Implementado |
 | RF14 | Consultar historial de liquidaciones | Implementado |
+| RF15 | Consultar historial de liquidaciones con filtros | Implementado |

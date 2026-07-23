@@ -209,3 +209,24 @@ En su lugar utilizará DTOs de respuesta específicos para cada caso de uso.
 **Resultado**
 
 Se implementó `CommissionCalculationResponseDto` para representar las liquidaciones expuestas por la API.
+
+---
+
+## DEC-018 — Uso de QueryBuilder para consultas dinámicas
+
+**Estado:** Aceptada
+
+### Decisión
+
+Las consultas que requieran filtros opcionales se implementarán utilizando `QueryBuilder` de TypeORM en lugar de `Repository.find()`.
+
+### Motivo
+
+- Permite construir consultas dinámicamente.
+- Evita duplicar métodos para cada combinación de filtros.
+- Facilita agregar nuevas condiciones en el futuro.
+- Simplifica la incorporación de paginación, ordenamientos y reportes.
+
+### Resultado
+
+El historial de liquidaciones utiliza `QueryBuilder`, permitiendo filtrar por grupo, banco y rango de fechas mediante un único endpoint.

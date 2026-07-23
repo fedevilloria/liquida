@@ -10,6 +10,7 @@ import { BanksService } from '../banks/banks.service';
 import { GroupsService } from '../groups/groups.service';
 import { RegisterCommissionCalculationDto } from './dto/register-commission-calculation.dto';
 import { CommissionCalculation } from './entities/commission-calculation.entity';
+import { FindCommissionCalculationsDto } from './dto/find-commission-calculations.dto';
 
 @Injectable()
 export class CommissionCalculationsService {
@@ -134,21 +135,75 @@ export class CommissionCalculationsService {
   }
 
   /**
-   * Obtiene todas las liquidaciones registradas.
-   *
-   * Se incluyen las relaciones con grupo y banco para que
-   * el historial pueda mostrar sus nombres directamente.
-   */
-  async findAll(): Promise<CommissionCalculation[]> {
-    return this.commissionCalculationsRepository.find({
-      relations: {
-        group: true,
-        bank: true,
-      },
-      order: {
-        calculationDateTime: 'DESC',
-      },
-    });
+ * Obtiene el historial de liquidaciones.
+ *
+ * Los filtros son opcionales y pueden combinarse.
+ * Si no se recibe ninguno, devuelve todas las liquidaciones
+ * ordenadas desde la más reciente.
+ */
+  async findAll(
+    filters: FindCommissionCalculationsDto,
+  ): Promise<CommissionCalculation[]> {
+    // Se construye una consulta dinámica porque los filtros
+    // dependen de los parámetros enviados por el usuario.
+    const query = this.commissionCalculationsRepository
+      .createQueryBuilder('calculation')
+      .leftJoinAndSelect('calculation.group', 'group')
+      .leftJoinAndSelect('calculation.bank', 'bank');
+
+    // Aplica el filtro por grupo únicamente
+    // cuando el parámetro fue enviado.
+    if (filters.groupId !== undefined) {
+      query.andWhere('group.id = :groupId', {
+        groupId: filters.groupId,
+      });
+    }
+
+    // Aplica el filtro por banco únicamente
+    // cuando el parámetro fue enviado.
+    if (filters.bankId !== undefined) {
+      query.andWhere('bank.id = :bankId', {
+        bankId: filters.bankId,
+      });
+    }
+
+    // Valida que el período tenga un orden temporal correcto
+    // antes de ejecutar la consulta en PostgreSQL.
+    if (
+      filters.from !== undefined &&
+      filters.to !== undefined &&
+      filters.from > filters.to
+    ) {
+      throw new BadRequestException(
+        'La fecha inicial no puede ser posterior a la fecha final.',
+      );
+    }
+
+    // Incluye desde el comienzo completo del día indicado.
+    if (filters.from !== undefined) {
+      query.andWhere(
+        'calculation.calculationDateTime >= :fromDateTime',
+        {
+          fromDateTime: `${filters.from} 00:00:00.000`,
+        },
+      );
+    }
+
+    // Incluye hasta el final completo del día indicado.
+    if (filters.to !== undefined) {
+      query.andWhere(
+        'calculation.calculationDateTime <= :toDateTime',
+        {
+          toDateTime: `${filters.to} 23:59:59.999`,
+        },
+      );
+    }
+
+    // El historial se presenta desde la liquidación
+    // más reciente hacia la más antigua.
+    query.orderBy('calculation.calculationDateTime', 'DESC');
+
+    return query.getMany();
   }
 
   /**

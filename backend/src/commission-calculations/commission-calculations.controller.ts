@@ -5,11 +5,13 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 
 import { CommissionCalculationResponseDto } from './dto/commission-calculation-response.dto';
 import { RegisterCommissionCalculationDto } from './dto/register-commission-calculation.dto';
 import { CommissionCalculationsService } from './commission-calculations.service';
+import { FindCommissionCalculationsDto } from './dto/find-commission-calculations.dto';
 
 @Controller('commission-calculations')
 export class CommissionCalculationsController {
@@ -47,9 +49,23 @@ export class CommissionCalculationsController {
    * GET /commission-calculations
    */
   @Get()
-  async findAll(): Promise<CommissionCalculationResponseDto[]> {
+  /**
+  * Obtiene el historial de liquidaciones.
+  *
+  * Los parámetros de consulta permiten filtrar por grupo,
+  * banco y período sin crear endpoints separados.
+  *
+  * GET /commission-calculations
+  * GET /commission-calculations?groupId=1
+  * GET /commission-calculations?bankId=1
+  * GET /commission-calculations?from=2026-07-01&to=2026-07-31
+  */
+  @Get()
+  async findAll(
+    @Query() filters: FindCommissionCalculationsDto,
+  ): Promise<CommissionCalculationResponseDto[]> {
     const calculations =
-      await this.commissionCalculationsService.findAll();
+      await this.commissionCalculationsService.findAll(filters);
 
     return calculations.map((calculation) =>
       CommissionCalculationResponseDto.fromEntity(calculation),

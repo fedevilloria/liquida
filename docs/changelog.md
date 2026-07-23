@@ -13,3 +13,12 @@
 - Cálculo automático de comisiones.
 - DTOs de entrada y salida.
 - Historial de liquidaciones.
+
+### Agregado
+
+- Historial de liquidaciones.
+- Filtros por grupo.
+- Filtros por banco.
+- Filtros por rango de fechas.
+- Validación del período consultado.
+- Implementación de consultas dinámicas mediante QueryBuilder.

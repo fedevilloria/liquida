@@ -211,3 +211,20 @@ Integra las funcionalidades terminadas.
 ### 'feature/*'
 
 Contiene el desarrollo aislado de cada funcionalidad.
+
+---
+
+## Consulta dinámica de liquidaciones
+
+El módulo de liquidaciones implementa consultas dinámicas utilizando `QueryBuilder` de TypeORM.
+
+Esta estrategia permite construir la consulta SQL únicamente con los filtros enviados por el usuario, evitando la creación de múltiples métodos específicos para cada combinación de criterios de búsqueda.
+
+Actualmente el historial admite los siguientes filtros:
+
+- Grupo.
+- Banco.
+- Fecha inicial.
+- Fecha final.
+
+La consulta devuelve los resultados ordenados desde la liquidación más reciente hacia la más antigua.

@@ -274,3 +274,60 @@ Ejemplo:
 
 
 GET /commission-calculations/1
+
+
+## Consultar historial de liquidaciones
+
+
+GET /commission-calculations
+
+
+Permite consultar el historial de liquidaciones.
+
+Todos los filtros son opcionales y pueden combinarse libremente.
+
+### Parámetros de consulta
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| groupId | number | Filtra por grupo |
+| bankId | number | Filtra por banco |
+| from | YYYY-MM-DD | Fecha inicial del período |
+| to | YYYY-MM-DD | Fecha final del período |
+
+### Ejemplos
+
+Todas las liquidaciones
+
+
+GET /commission-calculations
+
+
+Liquidaciones de un grupo
+
+
+GET /commission-calculations?groupId=1
+
+
+Liquidaciones de un banco
+
+
+GET /commission-calculations?bankId=1
+
+
+Liquidaciones de un período
+
+
+GET /commission-calculations?from=2026-07-01&to=2026-07-31
+
+
+Combinación de filtros
+
+
+GET /commission-calculations?groupId=1&bankId=1&from=2026-07-01&to=2026-07-31
+
+
+### Respuestas
+
+- **200 OK** cuando la consulta se realiza correctamente.
+- **400 Bad Request** cuando la fecha inicial es posterior a la fecha final o los parámetros son inválidos.
