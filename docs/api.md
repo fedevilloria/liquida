@@ -254,16 +254,6 @@ json
 
 ---
 
-## Consultar todas las liquidaciones
-
-
-GET /commission-calculations
-
-
-Devuelve todas las liquidaciones ordenadas desde la más reciente.
-
----
-
 ## Consultar una liquidación
 
 
@@ -281,8 +271,7 @@ GET /commission-calculations/1
 
 GET /commission-calculations
 
-
-Permite consultar el historial de liquidaciones.
+Devuelve las liquidaciones ordenadas desde la más reciente.
 
 Todos los filtros son opcionales y pueden combinarse libremente.
 
@@ -297,32 +286,27 @@ Todos los filtros son opcionales y pueden combinarse libremente.
 
 ### Ejemplos
 
-Todas las liquidaciones
-
+Todas las liquidaciones:
 
 GET /commission-calculations
 
 
-Liquidaciones de un grupo
-
+Liquidaciones de un grupo:
 
 GET /commission-calculations?groupId=1
 
 
-Liquidaciones de un banco
-
+Liquidaciones de un banco:
 
 GET /commission-calculations?bankId=1
 
 
-Liquidaciones de un período
-
+Liquidaciones de un período:
 
 GET /commission-calculations?from=2026-07-01&to=2026-07-31
 
 
-Combinación de filtros
-
+Combinación de filtros:
 
 GET /commission-calculations?groupId=1&bankId=1&from=2026-07-01&to=2026-07-31
 
@@ -331,3 +315,124 @@ GET /commission-calculations?groupId=1&bankId=1&from=2026-07-01&to=2026-07-31
 
 - **200 OK** cuando la consulta se realiza correctamente.
 - **400 Bad Request** cuando la fecha inicial es posterior a la fecha final o los parámetros son inválidos.
+
+## Dashboard de liquidaciones
+
+### Obtener estadísticas del dashboard
+
+Devuelve un resumen general de las liquidaciones registradas.
+
+Permite filtrar los resultados por un período determinado. Si no se envían fechas, se consideran todas las liquidaciones existentes.
+
+
+GET /commission-calculations/dashboard
+
+### Parámetros de consulta
+
+| Parámetro | Tipo | Obligatorio | Descripción |
+|-----------|------|-------------|-------------|
+| from | YYYY-MM-DD | NO | Fecha inicial del período |
+| to | YYYY-MM-DD | NO | Fecha final del período |
+
+Los parámetros pueden utilizarse de manera independiente o combinada.
+
+### Ejemplos
+
+Sin filtros:
+GET /commission-calculations/dashboard
+
+Con período:
+GET /commission-calculations/dashboard?from=2026-07-01&to=2026-07-31
+
+### Respuesta exitosa
+
+200 OK
+
+{
+  "from": "2026-07-01",
+  "to": "2026-07-31",
+  "calculationCount": 4,
+  "totalCollectionAmount": 15865599.12,
+  "totalCommissionAmount": 396639.98,
+  "bankCommissionAmount": 63462.4,
+  "clientCommissionAmount": 158656,
+  "ownCommissionAmount": 174521.58,
+  "averageCollectionAmount": 3966399.78,
+  "topGroup": {
+    "id": 1,
+    "name": "Silvina C",
+    "totalCollectionAmount": 9225599.12
+  },
+  "topBank": {
+    "id": 1,
+    "name": "Copter",
+    "calculationCount": 3
+  }
+}
+
+Los valores son ilustrativos y dependen de los registros existentes.
+
+### Campos de respuestas
+
+| Campo | Tipo | Descripción |
+|-----------|------|-------------|
+| from | string o null | Fecha inicial utilizada |
+| to | string o null | Fecha final utilizada |
+| calculationCount | number | Cantidad de liquidaciones |
+| totalCollectionAmount | number | Recaudación total |
+| totalCommissionAmount | number | Comisión total acumulada |
+| bankCommissionAmount | number | Comisión bancaria acumulada |
+| clientCommissionAmount | number | Comisión del cliente acumulada |
+| ownCommissionAmount | number | Comisión propia acumulada |
+| averageCollectionAmount | number | Recaudación promedio |
+| topGroup | object o null | Grupo con mayor recaudación |
+| topBank | object o null | Banco más utilizado |
+
+### Estructura de topGroup
+
+| Campo | Tipo | Descripción |
+|-----------|------|-------------|
+| id | number | Identificador del grupo |
+| name | string | Nombre del grupo |
+| totalCollectionAmount | number | Recaudación acumulada del grupo |
+
+### Estructura de topBank
+
+| Campo | Tipo | Descripción |
+|-----------|------|-------------|
+| id | number | Identificador del banco |
+| name | string | Nombre del banco |
+| calculationCount | number | Cantidad de liquidaciones del banco |
+
+### Período sin resultados
+
+{
+  "from": "2025-01-01",
+  "to": "2025-01-31",
+  "calculationCount": 0,
+  "totalCollectionAmount": 0,
+  "totalCommissionAmount": 0,
+  "bankCommissionAmount": 0,
+  "clientCommissionAmount": 0,
+  "ownCommissionAmount": 0,
+  "averageCollectionAmount": 0,
+  "topGroup": null,
+  "topBank": null
+}
+
+### Errores de validación
+
+Las fechas deben respetar el formato YYYY-MM-DD.
+
+Ejemplo inválido:
+GET /commission-calculations/dashboard?from=01-07-2026
+
+Si la fecha inicial es posterior a la fecha final:
+GET /commission-calculations/dashboard?from=2026-08-01&to=2026-07-01
+
+La API responde:
+{
+  "statusCode": 400,
+  "message": "La fecha inicial no puede ser posterior a la fecha final.",
+  "error": "Bad Request"
+}

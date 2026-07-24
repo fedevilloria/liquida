@@ -152,9 +152,47 @@ Cuando no existe comisión del cliente, se utilizará cero para realizar las ope
 
 ---
 
-## 7. Estado de implementación
+## 7. Consultas derivadas del dashboard
 
-Actualmente la entidad `CommissionCalculation` permite:
+El dashboard no incorpora nuevas tablas ni columnas.
+
+Las métricas se calculan dinámicamente a partir de commission_calculations mediante consultas agregadas.
+
+Estadísticas generales:
+
+- Cantidad de liquidaciones: COUNT(id).
+- Recaudación total: SUM(collectionAmount).
+- Comisión total: SUM(totalCommissionAmount).
+- Comisión bancaria: SUM(bankCommissionAmount).
+- Comisión del cliente: SUM(clientCommissionAmount).
+- Comisión propia: SUM(ownCommissionAmount).
+- Recaudación promedio: AVG(collectionAmount).
+
+COALESCE se utiliza para devolver cero cuando no existen registros en el período consultado.
+
+### Grupo con mayor recaudación
+
+Las liquidaciones se agrupan por grupo y se suma collectionAmount.
+
+El resultado se ordena de mayor a menor y se selecciona el primer registro.
+
+### Banco más utilizado
+
+Las liquidaciones se agrupan por banco y se cuenta la cantidad de registros.
+
+El resultado se ordena de mayor a menor y se selecciona el primer registro.
+
+### Filtros temporales
+
+Las consultas pueden limitarse mediante:
+- from: inicio completo del día indicado.
+- to: final completo del día indicado.
+
+---
+
+## 8. Estado de implementación
+
+Actualmente la entidad CommissionCalculation permite:
 
 - Registrar una liquidación individual.
 - Conservar una copia histórica de los porcentajes utilizados.
@@ -162,3 +200,5 @@ Actualmente la entidad `CommissionCalculation` permite:
 - Asociar la liquidación a un único grupo y un único banco.
 - Registrar observaciones opcionales.
 - Registrar la fecha y hora de corte utilizada para la liquidación.
+- Consultar el historial mediante filtros.
+- Obtener estadísticas y rankings sin modificar el modelo persistente.

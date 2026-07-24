@@ -12,6 +12,8 @@ import { CommissionCalculationResponseDto } from './dto/commission-calculation-r
 import { RegisterCommissionCalculationDto } from './dto/register-commission-calculation.dto';
 import { CommissionCalculationsService } from './commission-calculations.service';
 import { FindCommissionCalculationsDto } from './dto/find-commission-calculations.dto';
+import { DashboardFiltersDto } from './dto/dashboard-filters.dto';
+import { CommissionDashboardResponseDto } from './dto/commission-dashboard-response.dto';
 
 @Controller('commission-calculations')
 export class CommissionCalculationsController {
@@ -48,6 +50,7 @@ export class CommissionCalculationsController {
    *
    * GET /commission-calculations
    */
+
   @Get()
   /**
   * Obtiene el historial de liquidaciones.
@@ -60,6 +63,7 @@ export class CommissionCalculationsController {
   * GET /commission-calculations?bankId=1
   * GET /commission-calculations?from=2026-07-01&to=2026-07-31
   */
+ 
   @Get()
   async findAll(
     @Query() filters: FindCommissionCalculationsDto,
@@ -70,6 +74,24 @@ export class CommissionCalculationsController {
     return calculations.map((calculation) =>
       CommissionCalculationResponseDto.fromEntity(calculation),
     );
+  }
+
+  /**
+  * Obtiene las estadísticas generales del dashboard.
+  *
+  * Las fechas son opcionales y permiten limitar las estadísticas
+  * a un período determinado.
+  *
+  * GET /commission-calculations/dashboard
+  * GET /commission-calculations/dashboard?from=2026-07-01
+  * GET /commission-calculations/dashboard?to=2026-07-31
+  * GET /commission-calculations/dashboard?from=2026-07-01&to=2026-07-31
+  */
+  @Get('dashboard')
+  async getDashboard(
+    @Query() filters: DashboardFiltersDto,
+  ): Promise<CommissionDashboardResponseDto> {
+    return this.commissionCalculationsService.getDashboard(filters);
   }
 
   /**

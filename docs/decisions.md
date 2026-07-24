@@ -230,3 +230,52 @@ Las consultas que requieran filtros opcionales se implementarán utilizando `Que
 ### Resultado
 
 El historial de liquidaciones utiliza `QueryBuilder`, permitiendo filtrar por grupo, banco y rango de fechas mediante un único endpoint.
+
+---
+
+## DEC-019 - Consultas agregadas para el dashboard
+
+**Estado:** Aceptada
+
+### Decisión
+
+El dashboard se implementará mediante consultas agregadas de PostgreSQL construidas con QueryBuilder.
+
+Las consultas utilizarán funciones como:
+- COUNT
+- SUM
+- AVG
+- COALESCE
+- GROUP BY
+- ORDER BY
+
+### Motivo
+
+- Evitar cargar todas las liquidaciones en memoria.
+- Delegar los cálculos estadísticos a la base de datos.
+- Mejorar el rendimiento y la escalabilidad.
+- Obtener totales, promedios y rankings mediante consultas específicas.
+
+### Resultado
+
+El endpoint del dashboard devuelve estadísticas generales, el grupo con mayor recaudación y el banco más utilizado.
+
+---
+
+## DEC-020 - Reutilización de filtros temporales
+
+**Estado:** Aceptada
+
+### Decisión
+
+La aplicación centralizará la aplicación de filtros de fecha del dashboard en el método privado applyDateFilters().
+
+### Motivo
+
+- Evitar duplicación entre las consultas generales, el ranking de grupos y el ranking de bancos.
+- Mantener una única definición del rango temporal.
+- Reducir el riesgo de inconsistencias al modificar la lógica.
+
+### Resultado
+
+Las tres consultas del dashboard reutilizan el mismo método auxiliar.

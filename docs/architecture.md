@@ -167,10 +167,7 @@ Esto evita duplicación y mantiene una estructura temporal consistente.
 
 ## 7. Borrado lógico
 
-Los grupos y bancos utilizan el atributo:
-
-active
-
+Los grupos y bancos utilizan el atributo: active
 
 Cuando dejan de operar, se los marca como inactivos en lugar de eliminarlos físicamente.
 
@@ -188,6 +185,8 @@ PostgreSQL utiliza columnas 'numeric' para almacenar porcentajes y montos.
 
 Como PostgreSQL puede devolver estos valores como texto, Liquida utiliza un 'ValueTransformer' para convertirlos en números de JavaScript.
 
+En las consultas agregadas, los resultados de COUNT, SUM y AVG también se convierten explícitamente antes de construir la respuesta.
+
 ---
 
 ## 9. Estrategia de ramas
@@ -197,7 +196,8 @@ main
     ├── feature/database-config
     ├── feature/groups-crud
     ├── feature/banks-crud
-    └── feature/commission-calculations
+    ├── feature/commission-calculations
+    └── feature/commission-dashboard
 
 
 ### 'main'
@@ -214,13 +214,13 @@ Contiene el desarrollo aislado de cada funcionalidad.
 
 ---
 
-## Consulta dinámica de liquidaciones
+## 10. Consulta dinámica del historial
 
-El módulo de liquidaciones implementa consultas dinámicas utilizando `QueryBuilder` de TypeORM.
+El módulo de liquidaciones implementa consultas dinámicas utilizando QueryBuilder de TypeORM.
 
-Esta estrategia permite construir la consulta SQL únicamente con los filtros enviados por el usuario, evitando la creación de múltiples métodos específicos para cada combinación de criterios de búsqueda.
+Esta estrategia permite construir la consulta SQL únicamente con los filtros enviados por el usuario, evitando la creación de múltiples métodos específicos para cada combinación de criterios.
 
-Actualmente el historial admite los siguientes filtros:
+Actualmente el historial admite:
 
 - Grupo.
 - Banco.
@@ -228,3 +228,26 @@ Actualmente el historial admite los siguientes filtros:
 - Fecha final.
 
 La consulta devuelve los resultados ordenados desde la liquidación más reciente hacia la más antigua.
+
+---
+
+## 11. Dashboard de liquidaciones
+
+El dashboard se implementa mediante tres consultas agregadas independientes:
+
+1- Estadísticas generales.
+2- Grupo con mayor recaudación.
+3- Banco utilizado en la mayor cantidad de liquidaciones.
+
+Las consultas delegan los cálculos a PostgreSQL mediante:
+
+- COUNT
+- SUM
+- AVG
+- COALESCE
+- GROUP BY
+- ORDER BY
+
+Esta estrategia evita cargar todas las liquidaciones en memoria y permite escalar mejor cuando aumente el volumen de datos.
+
+Los filtros temporales se reutilizan mediante el método privado applyDateFilters(), que recibe un SelectQueryBuilder<CommissionCalculation> y el DTO de filtros.

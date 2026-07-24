@@ -189,7 +189,7 @@ El sistema deberá permitir consultar las liquidaciones registradas y visualizar
 
 ---
 
-### RF15 – Consultar historial de liquidaciones
+### RF15 – Filtrar el historial de liquidaciones
 
 El sistema deberá permitir consultar el historial de liquidaciones registradas.
 
@@ -203,6 +203,26 @@ La consulta deberá admitir filtros opcionales por:
 Los filtros podrán utilizarse individualmente o combinarse entre sí.
 
 ---
+
+### RF16 - Consultar el dashboard de liquidaciones
+
+El sistema deberá permitir consultar un resumen estadístico de las liquidaciones registradas.
+
+El dashboard deberá informar:
+
+- Cantidad total de liquidaciones.
+- Recaudación total.
+- Comisión total acumulada.
+- Comisión bancaria acumulada.
+- Comisión del cliente acumulada.
+- Comisión propia acumulada.
+- Recaudación promedio por liquidación.
+- Grupo con mayor recaudación acumulada.
+- Banco utilizado en la mayor cantidad de liquidaciones.
+
+La consulta deberá aceptar filtros opcionales por fecha inicial y fecha final.
+
+Cuando no existan liquidaciones para el período consultado, los valores numéricos deberán ser cero y los rankings deberán devolverse como nulos.
 
 ## 4. Reglas de negocio
 
@@ -233,6 +253,12 @@ El porcentaje bancario utilizado deberá corresponder al porcentaje configurado 
 
 Cada liquidación deberá indicar la fecha y hora hasta la cual fueron considerados los comprobantes incluidos.
 
+### RN07 - Períodos de consulta
+
+Cuando se indiquen una fecha inicial y una fecha final, la fecha inicial no podrá ser posterior a la fecha final.
+
+Los filtros de fecha deberán incluir el día completo correspondiente a cada límite.
+
 ---
 
 ## 5. Requisitos no funcionales
@@ -261,6 +287,10 @@ Los porcentajes y montos deberán almacenarse utilizando tipos decimales adecuad
 
 Las entidades principales deberán registrar automáticamente su fecha de creación y última modificación.
 
+### RNF07 - Reutilización de lógica
+
+La lógica repetida de filtrado y consulta deberá centralizarse en métodos auxiliares cuando corresponda, para mejorar la mantenibilidad.
+
 ---
 
 ## Estado de implementación
@@ -282,3 +312,4 @@ Las entidades principales deberán registrar automáticamente su fecha de creaci
 | RF13 | Conservar valores históricos | Implementado |
 | RF14 | Consultar historial de liquidaciones | Implementado |
 | RF15 | Consultar historial de liquidaciones con filtros | Implementado |
+| RF16 | Consultar dashboard de liquidaciones | Implementado |
