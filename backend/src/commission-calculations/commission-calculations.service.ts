@@ -13,6 +13,19 @@ import { CommissionCalculation } from './entities/commission-calculation.entity'
 import { FindCommissionCalculationsDto } from './dto/find-commission-calculations.dto';
 import { DashboardFiltersDto } from './dto/dashboard-filters.dto';
 import { CommissionDashboardResponseDto } from './dto/commission-dashboard-response.dto';
+import { PaginatedCommissionCalculationResponseDto } from './dto/paginated-commission-calculation-response.dto';
+import { CommissionCalculationResponseDto } from './dto/commission-calculation-response.dto';
+
+/**
+ * Estructura mínima necesaria para aplicar filtros por rango de fechas.
+ *
+ * La utilizan tanto el historial como el dashboard, evitando
+ * que el método auxiliar dependa de un DTO específico.
+ */
+interface DateRangeFilters {
+  from?: string;
+  to?: string;
+}
 
 @Injectable()
 export class CommissionCalculationsService {
@@ -38,7 +51,7 @@ export class CommissionCalculationsService {
    */
   async registerCalculation(
     registerDto: RegisterCommissionCalculationDto,
-  ): Promise<CommissionCalculation> {
+  ): Promise<CommissionCalculationResponseDto> {
     const group = await this.groupsService.findOne(registerDto.groupId);
 
     const bank = await this.banksService.findOne(registerDto.bankId);
@@ -102,7 +115,7 @@ export class CommissionCalculationsService {
       ownCommissionPercentage,
     );
 
-    const calculation =
+    const savedCalculation =
       this.commissionCalculationsRepository.create({
         collectionAmount: registerDto.collectionAmount,
 
@@ -133,19 +146,21 @@ export class CommissionCalculationsService {
         bank,
       });
 
-    return this.commissionCalculationsRepository.save(calculation);
+    return CommissionCalculationResponseDto.fromEntity(
+      savedCalculation,
+    );
   }
 
   /**
    * Obtiene el historial de liquidaciones.
-  *
+   *
    * Los filtros son opcionales y pueden combinarse.
-   * Si no se recibe ninguno, devuelve todas las liquidaciones
-   * ordenadas desde la más reciente.
+   * Si no se recibe ninguno, devuelve la primera página
+   * ordenada según los parámetros recibidos.
    */
   async findAll(
     filters: FindCommissionCalculationsDto,
-  ): Promise<CommissionCalculation[]> {
+  ): Promise<PaginatedCommissionCalculationResponseDto> {
     // Se construye una consulta dinámica porque los filtros
     // dependen de los parámetros enviados por el usuario.
     const query = this.commissionCalculationsRepository
@@ -153,24 +168,21 @@ export class CommissionCalculationsService {
       .leftJoinAndSelect('calculation.group', 'group')
       .leftJoinAndSelect('calculation.bank', 'bank');
 
-    // Aplica el filtro por grupo únicamente
-    // cuando el parámetro fue enviado.
+    // Aplica el filtro por grupo únicamente cuando el parámetro fue enviado.
     if (filters.groupId !== undefined) {
       query.andWhere('group.id = :groupId', {
         groupId: filters.groupId,
       });
     }
 
-    // Aplica el filtro por banco únicamente
-    // cuando el parámetro fue enviado.
+    // Aplica el filtro por banco únicamente cuando el parámetro fue enviado.
     if (filters.bankId !== undefined) {
       query.andWhere('bank.id = :bankId', {
         bankId: filters.bankId,
       });
     }
 
-    // Valida que el período tenga un orden temporal correcto
-    // antes de ejecutar la consulta en PostgreSQL.
+    // Valida que el período tenga un orden temporal correcto antes de ejecutar la consulta en PostgreSQL.
     if (
       filters.from !== undefined &&
       filters.to !== undefined &&
@@ -181,31 +193,56 @@ export class CommissionCalculationsService {
       );
     }
 
-    // Incluye desde el comienzo completo del día indicado.
-    if (filters.from !== undefined) {
-      query.andWhere(
-        'calculation.calculationDateTime >= :fromDateTime',
-        {
-          fromDateTime: `${filters.from} 00:00:00.000`,
-        },
+    // Página solicitada.
+    const page = filters.page;
+
+    // Cantidad máxima de registros por página.
+    const limit = filters.limit;
+
+    // Cantidad de registros que deben omitirse
+    // antes de comenzar a devolver resultados.
+    const skip = (page - 1) * limit;
+
+    // Reutiliza la misma lógica temporal empleada por las consultas del dashboard.
+    this.applyDateFilters(query, filters);
+
+    // Ordena el historial según los parámetros enviados.
+    query.orderBy(
+      `calculation.${filters.sortBy}`,
+      filters.sortOrder
+    );
+
+    // Aplica la paginación.
+    query.skip(skip).take(limit);
+
+    // Obtiene los registros de la página solicitada
+    // y la cantidad total de registros que cumplen los filtros.
+    const [calculations, totalItems] =
+      await query.getManyAndCount();
+
+    // Calcula la cantidad total de páginas disponibles.
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // Convierte las entidades obtenidas desde PostgreSQL
+    // al formato público utilizado por la API.
+    const data: CommissionCalculationResponseDto[] =
+      calculations.map((calculation) =>
+        CommissionCalculationResponseDto.fromEntity(calculation),
       );
-    }
 
-    // Incluye hasta el final completo del día indicado.
-    if (filters.to !== undefined) {
-      query.andWhere(
-        'calculation.calculationDateTime <= :toDateTime',
-        {
-          toDateTime: `${filters.to} 23:59:59.999`,
-        },
-      );
-    }
-
-    // El historial se presenta desde la liquidación
-    // más reciente hacia la más antigua.
-    query.orderBy('calculation.calculationDateTime', 'DESC');
-
-    return query.getMany();
+    // Construye la respuesta con los registros obtenidos
+    // y los metadatos necesarios para navegar entre páginas.
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages,
+      },
+    };
   }
 
   /**
@@ -213,7 +250,7 @@ export class CommissionCalculationsService {
    *
    * Si no existe, devuelve una respuesta HTTP 404.
    */
-  async findOne(id: number): Promise<CommissionCalculation> {
+  async findOne(id: number): Promise<CommissionCalculationResponseDto> {
     const calculation =
       await this.commissionCalculationsRepository.findOne({
         where: {
@@ -231,7 +268,9 @@ export class CommissionCalculationsService {
       );
     }
 
-    return calculation;
+    return CommissionCalculationResponseDto.fromEntity(
+      calculation,
+    );
   }
 
   /**
@@ -454,7 +493,7 @@ export class CommissionCalculationsService {
    */
   private applyDateFilters(
     query: SelectQueryBuilder<CommissionCalculation>,
-    filters: DashboardFiltersDto,
+    filters: DateRangeFilters,
   ): void {
     // Incluye las liquidaciones desde el inicio
     // completo del día indicado.
@@ -478,5 +517,4 @@ export class CommissionCalculationsService {
       );
     }
   }
-
 }

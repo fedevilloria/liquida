@@ -197,7 +197,8 @@ main
     ├── feature/groups-crud
     ├── feature/banks-crud
     ├── feature/commission-calculations
-    └── feature/commission-dashboard
+    ├── feature/commission-dashboard
+    └── feature/commission-history-pagination
 
 
 ### 'main'
@@ -220,14 +221,61 @@ El módulo de liquidaciones implementa consultas dinámicas utilizando QueryBuil
 
 Esta estrategia permite construir la consulta SQL únicamente con los filtros enviados por el usuario, evitando la creación de múltiples métodos específicos para cada combinación de criterios.
 
-Actualmente el historial admite:
+Actualmente el historial admite filtros por:
 
 - Grupo.
 - Banco.
 - Fecha inicial.
 - Fecha final.
 
-La consulta devuelve los resultados ordenados desde la liquidación más reciente hacia la más antigua.
+También permite:
+
+- Seleccionar el número de página.
+- Seleccionar la cantidad de registros por página.
+- Ordenar por campos habilitados.
+- Seleccionar orden ascendente o descendente.
+- Combinar filtros, paginación y ordenamiento.
+
+La consulta se ejecuta mediante `getManyAndCount()`.
+
+Este método permite obtener:
+
+- Las liquidaciones correspondientes a la página solicitada.
+- La cantidad total de liquidaciones que cumplen los filtros.
+
+La paginación utiliza:
+
+- `skip()` para establecer la cantidad de registros omitidos.
+- `take()` para limitar la cantidad de registros devueltos.
+- `orderBy()` para aplicar el orden solicitado.
+
+El desplazamiento se calcula mediante:
+
+
+skip = (page - 1) × limit
+
+
+La cantidad total de páginas se calcula mediante:
+
+
+totalPages = Math.ceil(totalItems / limit)
+
+
+La respuesta incluye las liquidaciones y los siguientes metadatos:
+
+- Página actual.
+- Límite aplicado.
+- Cantidad total de registros.
+- Cantidad total de páginas.
+- Existencia de una página anterior.
+- Existencia de una página siguiente.
+
+Por defecto, la consulta utiliza:
+
+- Página 1.
+- Límite de 10 registros.
+- Orden por `calculationDateTime`.
+- Dirección descendente.
 
 ---
 
@@ -251,3 +299,67 @@ Las consultas delegan los cálculos a PostgreSQL mediante:
 Esta estrategia evita cargar todas las liquidaciones en memoria y permite escalar mejor cuando aumente el volumen de datos.
 
 Los filtros temporales se reutilizan mediante el método privado applyDateFilters(), que recibe un SelectQueryBuilder<CommissionCalculation> y el DTO de filtros.
+
+---
+
+## 12. Transformación de entidades a DTO
+
+Las entidades de liquidaciones no se devuelven directamente desde la API.
+
+El servicio transforma las entidades mediante:
+
+
+CommissionCalculationResponseDto.fromEntity()
+
+
+Esta transformación se utiliza en:
+
+- Registro de una liquidación.
+- Consulta de una liquidación por ID.
+- Consulta paginada del historial.
+
+La transformación se realiza en la capa de servicio.
+
+El controlador se limita a:
+
+- Recibir la solicitud HTTP.
+- Validar los parámetros mediante DTOs.
+- Delegar la operación al servicio.
+- Devolver el resultado.
+
+El flujo general es:
+
+
+Solicitud HTTP
+   │
+   ▼
+Controller
+   │
+   ▼
+DTO de entrada o filtros
+   │
+   ▼
+CommissionCalculationsService
+   │
+   ▼
+Repository / QueryBuilder
+   │
+   ▼
+PostgreSQL
+   │
+   ▼
+Entidad
+   │
+   ▼
+CommissionCalculationResponseDto
+   │
+   ▼
+Respuesta JSON
+
+
+Esta decisión permite:
+
+- Mantener controladores más simples.
+- Evitar duplicación de código.
+- Centralizar el formato de las respuestas.
+- Reducir el acoplamiento entre las entidades y la API.

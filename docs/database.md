@@ -201,4 +201,71 @@ Actualmente la entidad CommissionCalculation permite:
 - Registrar observaciones opcionales.
 - Registrar la fecha y hora de corte utilizada para la liquidación.
 - Consultar el historial mediante filtros.
+- Paginar el historial.
+- Ordenar el historial.
+- Combinar filtros, paginación y ordenamiento.
 - Obtener estadísticas y rankings sin modificar el modelo persistente.
+
+---
+
+## 9. Paginación y ordenamiento del historial
+
+La incorporación de paginación y ordenamiento no requirió modificar el modelo persistente.
+
+No se agregaron:
+
+- Tablas.
+- Columnas.
+- Relaciones.
+- Restricciones.
+- Migraciones.
+
+La funcionalidad se implementa en la capa de consulta mediante QueryBuilder de TypeORM.
+
+### Operaciones utilizadas
+
+- `ORDER BY`: ordena los resultados.
+- `OFFSET`: omite los registros pertenecientes a páginas anteriores.
+- `LIMIT`: limita la cantidad de registros devueltos.
+- `COUNT`: determina la cantidad total de registros que cumplen los filtros.
+
+En TypeORM estas operaciones se aplican mediante:
+
+- `orderBy()`.
+- `skip()`.
+- `take()`.
+- `getManyAndCount()`.
+
+### Conteo de registros
+
+El total de registros considera los filtros aplicados.
+
+Por ejemplo, cuando se filtra por grupo, `totalItems` representa únicamente la cantidad de liquidaciones correspondientes a ese grupo.
+
+### Relaciones utilizadas
+
+Los filtros por grupo y banco utilizan las relaciones existentes:
+
+
+CommissionCalculation.groupId → Group.id
+CommissionCalculation.bankId  → Bank.id
+
+
+Los filtros por fecha y el orden cronológico utilizan:
+
+
+CommissionCalculation.calculationDateTime
+
+
+### Consideración de rendimiento
+
+Cuando el volumen de liquidaciones aumente, se deberá analizar el rendimiento de las consultas.
+
+En caso de resultar necesario, podrán incorporarse índices sobre campos utilizados frecuentemente para filtrar u ordenar, como:
+
+- `calculationDateTime`.
+- `collectionAmount`.
+- `groupId`.
+- `bankId`.
+
+Los índices deberán incorporarse únicamente después de medir el comportamiento real de las consultas.

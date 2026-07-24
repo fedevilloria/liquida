@@ -279,3 +279,104 @@ La aplicación centralizará la aplicación de filtros de fecha del dashboard en
 ### Resultado
 
 Las tres consultas del dashboard reutilizan el mismo método auxiliar.
+
+---
+
+## DEC-021 — Paginación y ordenamiento del historial
+
+**Estado:** Aceptada
+
+### Decisión
+
+El historial de liquidaciones utilizará paginación basada en número de página y cantidad de registros por página.
+
+La consulta permitirá configurar:
+
+- Página solicitada.
+- Cantidad de registros por página.
+- Campo de ordenamiento.
+- Dirección ascendente o descendente.
+
+Los campos habilitados para ordenar estarán definidos explícitamente mediante un enum.
+
+### Motivo
+
+- Evitar devolver todas las liquidaciones en una única respuesta.
+- Reducir el tamaño de las respuestas HTTP.
+- Facilitar la implementación de tablas paginadas en el frontend.
+- Mantener un rendimiento adecuado cuando aumente el historial.
+- Evitar que el usuario pueda ordenar por campos no permitidos.
+- Permitir combinar ordenamiento, filtros y paginación.
+
+### Valores predeterminados
+
+Cuando el usuario no indique parámetros, se utilizarán:
+
+- Página 1.
+- Límite de 10 registros.
+- Orden por fecha y hora de liquidación.
+- Dirección descendente.
+
+### Implementación
+
+La consulta utiliza:
+
+- `skip()` para calcular el desplazamiento.
+- `take()` para limitar los resultados.
+- `orderBy()` para ordenar.
+- `getManyAndCount()` para obtener los registros y el total.
+
+La respuesta incluye:
+
+- Liquidaciones de la página solicitada.
+- Página actual.
+- Límite aplicado.
+- Cantidad total de registros.
+- Cantidad total de páginas.
+- Existencia de página anterior.
+- Existencia de página siguiente.
+
+### Alternativas descartadas
+
+- Devolver todo el historial sin paginación.
+- Permitir cualquier campo recibido desde la solicitud como criterio de ordenamiento.
+- Implementar paginación por cursor en esta primera versión.
+
+### Resultado
+
+El endpoint `GET /commission-calculations` permite consultar el historial mediante filtros, paginación y ordenamiento.
+
+---
+
+## DEC-022 — Transformación de liquidaciones en la capa de servicio
+
+**Estado:** Aceptada
+
+### Decisión
+
+La transformación de entidades `CommissionCalculation` a `CommissionCalculationResponseDto` se realizará en la capa de servicio.
+
+La transformación utilizará:
+
+
+CommissionCalculationResponseDto.fromEntity()
+
+
+### Motivo
+
+- Centralizar el formato de las respuestas.
+- Evitar repetir el mapeo de propiedades.
+- Mantener controladores simples.
+- Evitar devolver directamente entidades persistentes.
+- Facilitar futuras modificaciones del DTO.
+- Reducir inconsistencias entre endpoints.
+
+### Resultado
+
+Los siguientes métodos devuelven DTOs de respuesta desde el servicio:
+
+- Registro de una liquidación.
+- Consulta de una liquidación por ID.
+- Consulta paginada del historial.
+
+Los controladores delegan la operación al servicio y devuelven directamente el resultado.

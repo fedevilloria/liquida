@@ -14,6 +14,7 @@ import { CommissionCalculationsService } from './commission-calculations.service
 import { FindCommissionCalculationsDto } from './dto/find-commission-calculations.dto';
 import { DashboardFiltersDto } from './dto/dashboard-filters.dto';
 import { CommissionDashboardResponseDto } from './dto/commission-dashboard-response.dto';
+import { PaginatedCommissionCalculationResponseDto } from './dto/paginated-commission-calculation-response.dto';
 
 @Controller('commission-calculations')
 export class CommissionCalculationsController {
@@ -34,46 +35,33 @@ export class CommissionCalculationsController {
    */
   @Post()
   async registerCalculation(
-    @Body()
-    registerDto: RegisterCommissionCalculationDto,
+    @Body() dto: RegisterCommissionCalculationDto,
   ): Promise<CommissionCalculationResponseDto> {
-    const calculation =
-      await this.commissionCalculationsService.registerCalculation(
-        registerDto,
-      );
-
-    return CommissionCalculationResponseDto.fromEntity(calculation);
+    return this.commissionCalculationsService.registerCalculation(
+      dto,
+    );
   }
 
   /**
-   * Obtiene todas las liquidaciones registradas.
+   * Obtiene el historial paginado de liquidaciones.
+   *
+   * Los parámetros de consulta permiten:
+   * - Filtrar por grupo, banco y período.
+   * - Seleccionar la página y el límite.
+   * - Configurar el campo y la dirección de ordenamiento.
    *
    * GET /commission-calculations
+   * GET /commission-calculations?groupId=1
+   * GET /commission-calculations?bankId=1
+   * GET /commission-calculations?from=2026-07-01&to=2026-07-31
+   * GET /commission-calculations?page=1&limit=10
+   * GET /commission-calculations?sortBy=collectionAmount&sortOrder=ASC
    */
-
-  @Get()
-  /**
-  * Obtiene el historial de liquidaciones.
-  *
-  * Los parámetros de consulta permiten filtrar por grupo,
-  * banco y período sin crear endpoints separados.
-  *
-  * GET /commission-calculations
-  * GET /commission-calculations?groupId=1
-  * GET /commission-calculations?bankId=1
-  * GET /commission-calculations?from=2026-07-01&to=2026-07-31
-  */
- 
   @Get()
   async findAll(
     @Query() filters: FindCommissionCalculationsDto,
-  ): Promise<CommissionCalculationResponseDto[]> {
-    const calculations =
-      await this.commissionCalculationsService.findAll(filters);
-
-    return calculations.map((calculation) =>
-      CommissionCalculationResponseDto.fromEntity(calculation),
-    );
+  ): Promise<PaginatedCommissionCalculationResponseDto> {
+    return this.commissionCalculationsService.findAll(filters);
   }
 
   /**
@@ -103,9 +91,6 @@ export class CommissionCalculationsController {
   async findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<CommissionCalculationResponseDto> {
-    const calculation =
-      await this.commissionCalculationsService.findOne(id);
-
-    return CommissionCalculationResponseDto.fromEntity(calculation);
+    return this.commissionCalculationsService.findOne(id);
   }
 }

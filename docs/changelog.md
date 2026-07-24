@@ -46,3 +46,37 @@
 - Eliminación de lógica duplicada entre las consultas del dashboard.
 - Ajustes de indentación y comentarios internos del servicio.
 - Documentación de API, requisitos, arquitectura, modelo de datos y decisiones técnicas.
+
+## v0.3.0
+
+### Agregado
+
+- Paginación del historial de liquidaciones.
+- Parámetro `page` para seleccionar la página solicitada.
+- Parámetro `limit` para definir la cantidad de registros por página.
+- Ordenamiento configurable mediante `sortBy`.
+- Dirección de ordenamiento configurable mediante `sortOrder`.
+- DTO específico para la respuesta paginada del historial.
+- Metadatos con página actual, límite, cantidad total de registros y cantidad total de páginas.
+- Indicadores para conocer si existe una página anterior o siguiente.
+
+### Mejorado
+
+- Compatibilidad entre filtros, paginación y ordenamiento.
+- Reutilización del método `applyDateFilters()` en las consultas del historial y del dashboard.
+- Centralización de la transformación de entidades mediante `CommissionCalculationResponseDto.fromEntity()`.
+- Simplificación del controlador de liquidaciones.
+- Eliminación del mapeo manual duplicado entre entidades y DTOs.
+- Documentación de API, requisitos, arquitectura, base de datos y decisiones técnicas.
+
+### Verificado
+
+- Consulta de la primera página.
+- Consulta de páginas posteriores.
+- Modificación del límite de registros.
+- Ordenamiento ascendente.
+- Ordenamiento descendente.
+- Ordenamiento por monto de recaudación.
+- Consulta de liquidaciones por ID.
+- Registro de nuevas liquidaciones.
+- Compatibilidad entre paginación y filtros.
