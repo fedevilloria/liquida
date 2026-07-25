@@ -54,8 +54,6 @@ export class CommissionCalculationsService {
   ): Promise<CommissionCalculationResponseDto> {
     const group = await this.groupsService.findOne(registerDto.groupId);
 
-    const bank = await this.banksService.findOne(registerDto.bankId);
-
     // Un grupo inactivo no puede utilizarse para registrar
     // nuevas liquidaciones, aunque siga existiendo en el historial.
     if (!group.active) {
@@ -63,6 +61,8 @@ export class CommissionCalculationsService {
         `El grupo "${group.name}" se encuentra inactivo.`,
       );
     }
+
+    const bank = await this.banksService.findOne(registerDto.bankId);
 
     // Un banco inactivo tampoco debe estar disponible
     // para registrar nuevas liquidaciones.
