@@ -115,7 +115,8 @@ export class CommissionCalculationsService {
       ownCommissionPercentage,
     );
 
-    const savedCalculation =
+    // Construye la entidad en memoria.
+    const calculation =
       this.commissionCalculationsRepository.create({
         collectionAmount: registerDto.collectionAmount,
 
@@ -146,6 +147,11 @@ export class CommissionCalculationsService {
         bank,
       });
 
+    // Persiste la entidad en la base de datos.
+    const savedCalculation =
+      await this.commissionCalculationsRepository.save(calculation);
+
+    // Devuelve el DTO de respuesta.
     return CommissionCalculationResponseDto.fromEntity(
       savedCalculation,
     );
