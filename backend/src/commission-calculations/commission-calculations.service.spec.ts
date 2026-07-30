@@ -102,6 +102,34 @@ describe('CommissionCalculationsService', () => {
   let service: CommissionCalculationsService;
 
   /**
+   * Mock reutilizable del QueryBuilder de TypeORM.
+   *
+   * Cada método de construcción devuelve el mismo objeto para
+   * permitir el encadenamiento de llamadas.
+   */
+  const queryBuilderMock = {
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
+
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+
+    andWhere: jest.fn().mockReturnThis(),
+
+    groupBy: jest.fn().mockReturnThis(),
+    addGroupBy: jest.fn().mockReturnThis(),
+
+    orderBy: jest.fn().mockReturnThis(),
+
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+
+    getManyAndCount: jest.fn(),
+    getRawOne: jest.fn(),
+  };
+
+  /**
    * Mock del repositorio de liquidaciones.
    *
    * Reemplaza las operaciones reales de TypeORM para evitar
@@ -111,7 +139,9 @@ describe('CommissionCalculationsService', () => {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
-    createQueryBuilder: jest.fn(),
+    createQueryBuilder: jest
+      .fn()
+      .mockReturnValue(queryBuilderMock),
   };
 
   /**
@@ -133,7 +163,7 @@ describe('CommissionCalculationsService', () => {
      * Elimina llamadas y respuestas configuradas
      * por cualquier prueba anterior.
      */
-    jest.resetAllMocks();
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -455,6 +485,631 @@ describe('CommissionCalculationsService', () => {
       expect(
         commissionCalculationsRepositoryMock.save,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findOne', () => {
+    it('debe devolver una liquidación existente transformada a DTO', async () => {
+      const calculation = createCalculation({
+        id: 15,
+      });
+
+      commissionCalculationsRepositoryMock.findOne.mockResolvedValue(
+        calculation,
+      );
+
+      const result = await service.findOne(15);
+
+      expect(
+        commissionCalculationsRepositoryMock.findOne,
+      ).toHaveBeenCalledWith({
+        where: {
+          id: 15,
+        },
+        relations: {
+          group: true,
+          bank: true,
+        },
+      });
+
+      expect(result).toEqual({
+        id: 15,
+        groupId: calculation.group.id,
+        groupName: calculation.group.name,
+        bankId: calculation.bank.id,
+        bankName: calculation.bank.name,
+        collectionAmount: calculation.collectionAmount,
+        totalCommissionPercentage:
+          calculation.totalCommissionPercentage,
+        bankCommissionPercentage:
+          calculation.bankCommissionPercentage,
+        clientCommissionPercentage:
+          calculation.clientCommissionPercentage,
+        ownCommissionPercentage:
+          calculation.ownCommissionPercentage,
+        totalCommissionAmount:
+          calculation.totalCommissionAmount,
+        bankCommissionAmount:
+          calculation.bankCommissionAmount,
+        clientCommissionAmount:
+          calculation.clientCommissionAmount,
+        ownCommissionAmount:
+          calculation.ownCommissionAmount,
+        calculationDateTime:
+          calculation.calculationDateTime,
+        notes: calculation.notes,
+        createdAt: calculation.createdAt,
+      });
+    });
+
+    it('debe lanzar una excepción cuando la liquidación no existe', async () => {
+      commissionCalculationsRepositoryMock.findOne.mockResolvedValue(
+        null,
+      );
+
+      await expect(service.findOne(999)).rejects.toThrow(
+        'No se encontró la liquidación con ID 999.',
+      );
+
+      expect(
+        commissionCalculationsRepositoryMock.findOne,
+      ).toHaveBeenCalledWith({
+        where: {
+          id: 999,
+        },
+        relations: {
+          group: true,
+          bank: true,
+        },
+      });
+    });
+
+    describe('findAll', () => {
+      it('debe devolver la primera página del historial sin filtros', async () => {
+        const calculation = createCalculation();
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenCalledWith('calculation');
+
+        expect(
+          queryBuilderMock.leftJoinAndSelect,
+        ).toHaveBeenNthCalledWith(
+
+          1,
+          'calculation.group',
+          'group',
+        );
+
+        expect(
+          queryBuilderMock.leftJoinAndSelect,
+        ).toHaveBeenNthCalledWith(
+          2,
+          'calculation.bank',
+          'bank',
+        );
+
+        expect(queryBuilderMock.orderBy).toHaveBeenCalledWith(
+          'calculation.calculationDateTime',
+          'DESC',
+        );
+
+        expect(queryBuilderMock.skip).toHaveBeenCalledWith(0);
+
+        expect(queryBuilderMock.take).toHaveBeenCalledWith(10);
+
+        expect(result.pagination).toEqual({
+          page: 1,
+          limit: 10,
+          totalItems: 1,
+          totalPages: 1,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        });
+
+        expect(result.data).toHaveLength(1);
+
+        expect(result.data[0].id).toBe(calculation.id);
+      });
+
+      it('debe aplicar el filtro por grupo', async () => {
+        const calculation = createCalculation({
+          group: createGroup({
+            id: 3,
+            name: 'Reca Lauta',
+          }) as CommissionCalculation['group'],
+        });
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          groupId: 3,
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenCalledWith('calculation');
+
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'group.id = :groupId',
+          {
+            groupId: 3,
+          },
+        );
+
+        expect(queryBuilderMock.orderBy).toHaveBeenCalledWith(
+          'calculation.calculationDateTime',
+          'DESC',
+        );
+
+        expect(queryBuilderMock.skip).toHaveBeenCalledWith(0);
+        expect(queryBuilderMock.take).toHaveBeenCalledWith(10);
+
+        expect(result.data).toHaveLength(1);
+        expect(result.data[0].groupId).toBe(3);
+        expect(result.data[0].groupName).toBe('Reca Lauta');
+
+        expect(result.pagination).toEqual({
+          page: 1,
+          limit: 10,
+          totalItems: 1,
+          totalPages: 1,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        });
+      });
+
+      it('debe aplicar el filtro por banco', async () => {
+        const calculation = createCalculation({
+          bank: createBank({
+            id: 2,
+            name: 'Telepagos',
+          }) as CommissionCalculation['bank'],
+        });
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          bankId: 2,
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'bank.id = :bankId',
+          {
+            bankId: 2,
+          },
+        );
+
+        expect(result.data).toHaveLength(1);
+
+        expect(result.data[0].bankId).toBe(2);
+        expect(result.data[0].bankName).toBe('Telepagos');
+
+        expect(result.pagination.totalItems).toBe(1);
+      });
+
+      it('debe aplicar simultáneamente los filtros por grupo y banco', async () => {
+        const calculation = createCalculation({
+          group: createGroup({
+            id: 3,
+            name: 'Reca Lauta',
+          }) as CommissionCalculation['group'],
+
+          bank: createBank({
+            id: 2,
+            name: 'Telepagos',
+          }) as CommissionCalculation['bank'],
+        });
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          groupId: 3,
+          bankId: 2,
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledTimes(2);
+
+        expect(queryBuilderMock.andWhere).toHaveBeenNthCalledWith(
+          1,
+          'group.id = :groupId',
+          {
+            groupId: 3,
+          },
+        );
+
+        expect(queryBuilderMock.andWhere).toHaveBeenNthCalledWith(
+          2,
+          'bank.id = :bankId',
+          {
+            bankId: 2,
+          },
+        );
+
+        expect(result.data).toHaveLength(1);
+        expect(result.data[0].groupId).toBe(3);
+        expect(result.data[0].bankId).toBe(2);
+      });
+
+      it('debe lanzar una excepción cuando la fecha inicial es posterior a la fecha final', async () => {
+        const filters = {
+          from: '2026-07-30',
+          to: '2026-07-01',
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        };
+
+        await expect(
+          service.findAll(filters),
+        ).rejects.toThrow(
+          'La fecha inicial no puede ser posterior a la fecha final.',
+        );
+
+        /**
+         * La consulta no debe llegar a ejecutarse
+         * porque el rango de fechas es inválido.
+         */
+        expect(queryBuilderMock.orderBy).not.toHaveBeenCalled();
+        expect(queryBuilderMock.skip).not.toHaveBeenCalled();
+        expect(queryBuilderMock.take).not.toHaveBeenCalled();
+        expect(
+          queryBuilderMock.getManyAndCount,
+        ).not.toHaveBeenCalled();
+      });
+
+      it('debe aplicar el filtro por rango de fechas', async () => {
+        const calculation = createCalculation();
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          from: '2026-07-01',
+          to: '2026-07-31',
+          page: 1,
+          limit: 10,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        /**
+         * Debe agregarse un filtro para la fecha inicial.
+         */
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'calculation.calculationDateTime >= :fromDateTime',
+          {
+            fromDateTime: '2026-07-01 00:00:00.000',
+          },
+        );
+
+        /**
+         * Debe agregarse un filtro para la fecha final.
+         */
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'calculation.calculationDateTime <= :toDateTime',
+          {
+            toDateTime: '2026-07-31 23:59:59.999',
+          },
+        );
+
+        expect(result.data).toHaveLength(1);
+
+        expect(result.pagination.totalItems).toBe(1);
+      });
+
+      it('debe aplicar correctamente la paginación en una página posterior', async () => {
+        const calculations = [
+          createCalculation({
+            id: 21,
+          }),
+          createCalculation({
+            id: 22,
+          }),
+        ];
+
+        /**
+         * Simulamos que existen 45 registros en total,
+         * aunque la página actual devuelve solamente dos entidades.
+         */
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          calculations,
+          45,
+        ]);
+
+        const result = await service.findAll({
+          page: 3,
+          limit: 20,
+          sortBy: 'calculationDateTime',
+          sortOrder: 'DESC',
+        });
+
+        /**
+         * Página 3 con límite 20:
+         *
+         * skip = (3 - 1) * 20 = 40
+         */
+        expect(queryBuilderMock.skip).toHaveBeenCalledWith(40);
+        expect(queryBuilderMock.take).toHaveBeenCalledWith(20);
+
+        expect(result.data).toHaveLength(2);
+
+        expect(result.pagination).toEqual({
+          page: 3,
+          limit: 20,
+          totalItems: 45,
+          totalPages: 3,
+          hasPreviousPage: true,
+          hasNextPage: false,
+        });
+      });
+
+      it('debe ordenar el historial por monto recaudado de forma ascendente', async () => {
+        const calculation = createCalculation();
+
+        queryBuilderMock.getManyAndCount.mockResolvedValue([
+          [calculation],
+          1,
+        ]);
+
+        const result = await service.findAll({
+          page: 1,
+          limit: 10,
+          sortBy: 'collectionAmount',
+          sortOrder: 'ASC',
+        });
+
+        expect(queryBuilderMock.orderBy).toHaveBeenCalledWith(
+          'calculation.collectionAmount',
+          'ASC',
+        );
+
+        expect(result.data).toHaveLength(1);
+
+        expect(result.pagination.totalItems).toBe(1);
+      });
+    });
+    describe('getDashboard', () => {
+      it('debe devolver correctamente las estadísticas generales del dashboard', async () => {
+        /**
+         * Primera respuesta: estadísticas generales.
+         *
+         * PostgreSQL devuelve los resultados de COUNT, SUM y AVG
+         * como strings en las consultas agregadas.
+         */
+        queryBuilderMock.getRawOne
+          .mockResolvedValueOnce({
+            calculationCount: '4',
+            totalCollectionAmount: '10000000',
+            totalCommissionAmount: '250000',
+            bankCommissionAmount: '30000',
+            clientCommissionAmount: '20000',
+            ownCommissionAmount: '200000',
+            averageCollectionAmount: '2500000',
+          })
+
+          /**
+           * Segunda respuesta: grupo con mayor recaudación.
+           */
+          .mockResolvedValueOnce({
+            id: '1',
+            name: 'Silvina C',
+            totalCollectionAmount: '6000000',
+          })
+
+          /**
+           * Tercera respuesta: banco más utilizado.
+           */
+          .mockResolvedValueOnce({
+            id: '2',
+            name: 'Telepagos',
+            calculationCount: '3',
+          });
+
+        const result = await service.getDashboard({});
+
+        /**
+         * El dashboard ejecuta tres consultas diferentes.
+         */
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenCalledTimes(3);
+
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenNthCalledWith(1, 'calculation');
+
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenNthCalledWith(2, 'calculation');
+
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).toHaveBeenNthCalledWith(3, 'calculation');
+
+        /**
+         * Verifica que las tres consultas hayan solicitado
+         * sus respectivos resultados agregados.
+         */
+        expect(queryBuilderMock.getRawOne).toHaveBeenCalledTimes(3);
+
+        /**
+         * Comprueba la transformación de strings a números
+         * y la estructura pública de respuesta.
+         */
+        expect(result).toEqual({
+          from: null,
+          to: null,
+
+          calculationCount: 4,
+
+          totalCollectionAmount: 10000000,
+          totalCommissionAmount: 250000,
+          bankCommissionAmount: 30000,
+          clientCommissionAmount: 20000,
+          ownCommissionAmount: 200000,
+          averageCollectionAmount: 2500000,
+
+          topGroup: {
+            id: 1,
+            name: 'Silvina C',
+            totalCollectionAmount: 6000000,
+          },
+
+          topBank: {
+            id: 2,
+            name: 'Telepagos',
+            calculationCount: 3,
+          },
+        });
+      });
+
+      it('debe devolver estadísticas vacías cuando no existen liquidaciones', async () => {
+        /**
+         * Consulta agregada principal.
+         */
+        queryBuilderMock.getRawOne
+          .mockResolvedValueOnce({
+            calculationCount: '0',
+            totalCollectionAmount: '0',
+            totalCommissionAmount: '0',
+            bankCommissionAmount: '0',
+            clientCommissionAmount: '0',
+            ownCommissionAmount: '0',
+            averageCollectionAmount: '0',
+          })
+
+          /**
+           * No existe grupo con mayor recaudación.
+           */
+          .mockResolvedValueOnce(null)
+
+          /**
+           * No existe banco más utilizado.
+           */
+          .mockResolvedValueOnce(null);
+
+        const result = await service.getDashboard({});
+
+        expect(queryBuilderMock.getRawOne).toHaveBeenCalledTimes(3);
+
+        expect(result).toEqual({
+          from: null,
+          to: null,
+
+          calculationCount: 0,
+
+          totalCollectionAmount: 0,
+          totalCommissionAmount: 0,
+          bankCommissionAmount: 0,
+          clientCommissionAmount: 0,
+          ownCommissionAmount: 0,
+          averageCollectionAmount: 0,
+
+          topGroup: null,
+          topBank: null,
+        });
+      });
+
+      it('debe lanzar una excepción cuando la fecha inicial es posterior a la fecha final', async () => {
+        await expect(
+          service.getDashboard({
+            from: '2026-07-31',
+            to: '2026-07-01',
+          }),
+        ).rejects.toThrow(
+          'La fecha inicial no puede ser posterior a la fecha final.',
+        );
+
+        /**
+         * La consulta nunca debe ejecutarse.
+         */
+        expect(
+          commissionCalculationsRepositoryMock.createQueryBuilder,
+        ).not.toHaveBeenCalled();
+
+        expect(queryBuilderMock.getRawOne).not.toHaveBeenCalled();
+      });
+
+      it('debe aplicar el filtro de fechas en todas las consultas del dashboard', async () => {
+        queryBuilderMock.getRawOne
+          .mockResolvedValueOnce({
+            calculationCount: '1',
+            totalCollectionAmount: '100',
+            totalCommissionAmount: '2.5',
+            bankCommissionAmount: '0.3',
+            clientCommissionAmount: '0',
+            ownCommissionAmount: '2.2',
+            averageCollectionAmount: '100',
+          })
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(null);
+
+        await service.getDashboard({
+          from: '2026-07-01',
+          to: '2026-07-31',
+        });
+
+        /**
+         * Cada consulta agrega dos filtros:
+         *
+         * >= fromDateTime
+         * <= toDateTime
+         *
+         * Hay tres consultas en total.
+         */
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledTimes(6);
+
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'calculation.calculationDateTime >= :fromDateTime',
+          {
+            fromDateTime: '2026-07-01 00:00:00.000',
+          },
+        );
+
+        expect(queryBuilderMock.andWhere).toHaveBeenCalledWith(
+          'calculation.calculationDateTime <= :toDateTime',
+          {
+            toDateTime: '2026-07-31 23:59:59.999',
+          },
+        );
+      });
     });
   });
 });
