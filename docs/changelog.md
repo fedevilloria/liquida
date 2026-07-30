@@ -13,10 +13,6 @@
 - Cálculo automático de comisiones.
 - DTOs de entrada y salida.
 - Historial de liquidaciones.
-
-### Agregado
-
-- Historial de liquidaciones.
 - Filtros por grupo.
 - Filtros por banco.
 - Filtros por rango de fechas.
@@ -80,3 +76,50 @@
 - Consulta de liquidaciones por ID.
 - Registro de nuevas liquidaciones.
 - Compatibilidad entre paginación y filtros.
+
+## v0.4.0
+
+### Agregado
+
+- Pruebas unitarias para `CommissionCalculationsService`.
+- Pruebas de configuración para los controladores de liquidaciones, bancos y grupos.
+- Pruebas de configuración para los servicios de bancos y grupos.
+- Fixtures reutilizables para DTOs, grupos, bancos y liquidaciones.
+- Mock reutilizable de `QueryBuilder` de TypeORM.
+- Pruebas de registro de liquidaciones con y sin comisión del cliente.
+- Pruebas para grupos y bancos inactivos.
+- Pruebas para grupos, bancos y liquidaciones inexistentes.
+- Pruebas para la validación de porcentajes.
+- Pruebas para consultas por identificador.
+- Pruebas para filtros por grupo, banco y fechas.
+- Pruebas para combinación de filtros.
+- Pruebas para paginación y ordenamiento.
+- Pruebas para estadísticas y rankings del dashboard.
+- Pruebas para el dashboard sin liquidaciones.
+- Pruebas para períodos de consulta inválidos.
+
+### Corregido
+
+- Persistencia de nuevas liquidaciones mediante `Repository.save()`.
+- Retorno de la entidad persistida antes de transformarla al DTO de respuesta.
+- Orden de validación durante el registro de una liquidación.
+- Configuración de dependencias en los archivos de prueba de bancos y grupos.
+
+### Mejorado
+
+- Validación del grupo antes de consultar el banco.
+- Eliminación de consultas innecesarias cuando el grupo se encuentra inactivo.
+- Organización del archivo `commission-calculations.service.spec.ts`.
+- Reducción de código duplicado mediante fixtures reutilizables.
+- Aislamiento de las pruebas respecto de PostgreSQL.
+- Simulación de consultas encadenables de TypeORM.
+- Cobertura de los principales caminos exitosos y de error del servicio de liquidaciones.
+
+### Verificado
+
+- 6 suites de pruebas aprobadas.
+- 27 pruebas aprobadas.
+- 0 pruebas fallidas.
+- Compilación correcta mediante `npm run build`.
+- Registro y persistencia real de liquidaciones mediante Postman.
+- Cálculos correctos de comisión total, bancaria, del cliente y propia.

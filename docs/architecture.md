@@ -363,3 +363,65 @@ Esta decisión permite:
 - Evitar duplicación de código.
 - Centralizar el formato de las respuestas.
 - Reducir el acoplamiento entre las entidades y la API.
+
+---
+
+## 13. Estrategia de pruebas unitarias
+
+El backend utiliza Jest y las herramientas de testing de NestJS para verificar el comportamiento de los servicios y controladores.
+
+Las pruebas unitarias se ejecutan sin conectarse a PostgreSQL.
+
+Para aislar cada unidad se reemplazan las dependencias externas mediante mocks:
+
+- Repositorios de TypeORM.
+- Servicios utilizados por otros módulos.
+- `QueryBuilder`.
+- Métodos de persistencia y consulta.
+
+### Pruebas del servicio de liquidaciones
+
+`CommissionCalculationsService` cuenta con pruebas unitarias para sus principales métodos públicos:
+
+- `registerCalculation()`.
+- `findOne()`.
+- `findAll()`.
+- `getDashboard()`.
+
+Las pruebas cubren:
+
+- Registro correcto de liquidaciones.
+- Cálculo de porcentajes e importes.
+- Liquidaciones con y sin comisión del cliente.
+- Grupos y bancos inactivos.
+- Grupos, bancos y liquidaciones inexistentes.
+- Validación de la suma de porcentajes.
+- Persistencia mediante `create()` y `save()`.
+- Transformación de entidades a DTO.
+- Filtros por grupo y banco.
+- Combinación de filtros.
+- Filtros por rango de fechas.
+- Validación de períodos.
+- Paginación.
+- Ordenamiento.
+- Estadísticas generales del dashboard.
+- Dashboard sin registros.
+- Rankings de grupos y bancos.
+
+### Fixtures reutilizables
+
+Los datos de prueba repetidos se construyen mediante funciones auxiliares:
+
+- `createRegisterDto()`.
+- `createGroup()`.
+- `createBank()`.
+- `createCalculation()`.
+
+Cada función genera un objeto válido con valores predeterminados y permite reemplazar únicamente las propiedades necesarias para cada escenario.
+
+Ejemplo:
+
+```ts
+const inactiveGroup = createGroup({
+  active: false,
+});

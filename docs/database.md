@@ -269,3 +269,39 @@ En caso de resultar necesario, podrán incorporarse índices sobre campos utiliz
 - `bankId`.
 
 Los índices deberán incorporarse únicamente después de medir el comportamiento real de las consultas.
+
+---
+
+## 10. Impacto de las pruebas unitarias sobre la base de datos
+
+La incorporación de pruebas unitarias no requirió modificaciones en el modelo persistente.
+
+No se agregaron:
+
+- Tablas.
+- Columnas.
+- Relaciones.
+- Restricciones.
+- Índices.
+- Migraciones.
+
+Los repositorios de TypeORM se reemplazan mediante mocks durante la ejecución de las pruebas.
+
+Por este motivo, las pruebas unitarias:
+
+- No se conectan a PostgreSQL.
+- No insertan registros reales.
+- No modifican liquidaciones existentes.
+- No dependen del estado actual de la base de datos.
+- Pueden ejecutarse de forma repetible y aislada.
+
+Las operaciones simuladas incluyen:
+
+- `create()`.
+- `save()`.
+- `findOne()`.
+- `createQueryBuilder()`.
+- `getManyAndCount()`.
+- `getRawOne()`.
+
+Las pruebas verifican que el servicio invoque correctamente estas operaciones, pero no ejecutan SQL real.

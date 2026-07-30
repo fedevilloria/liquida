@@ -399,3 +399,92 @@ GET /commission-calculations/1
 
 - **200 OK** cuando la liquidación existe.
 - **404 Not Found** cuando no existe una liquidación con el identificador indicado.
+
+---
+
+## Consultar dashboard de liquidaciones
+
+GET /commission-calculations/dashboard
+
+Devuelve un resumen estadístico de las liquidaciones registradas.
+La consulta puede limitarse mediante una fecha inicial y una fecha final. Ambos parámetros son opcionales y pueden utilizarse individualmente o en conjunto.
+
+### Parámetros de consulta
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| from | YYYY-MM-DD | Fecha inicial del período |
+| to | YYYY-MM-DD | Fecha final del período |
+
+Los filtros incluyen el día completo:
+
+- from se interpreta desde las 00:00:00.000.
+- to se interpreta hasta las 23:59:59.999.
+
+### Ejemplos
+
+### Dashboard completo
+
+GET /commission-calculations/dashboard
+
+### Dashboard desde una fecha
+
+GET /commission-calculations/dashboard?from=2026-07-01
+
+### Dashboard hasta una fecha
+
+GET /commission-calculations/dashboard?to=2026-07-31
+
+### Dashboard de un período
+
+GET /commission-calculations/dashboard?from=2026-07-01&to=2026-07-31
+
+### Respuesta
+
+json
+{
+  "from": "2026-07-01",
+  "to": "2026-07-31",
+  "calculationCount": 4,
+  "totalCollectionAmount": 10000000,
+  "totalCommissionAmount": 250000,
+  "bankCommissionAmount": 30000,
+  "clientCommissionAmount": 20000,
+  "ownCommissionAmount": 200000,
+  "averageCollectionAmount": 2500000,
+  "topGroup": {
+    "id": 1,
+    "name": "Silvina C",
+    "totalCollectionAmount": 6000000
+  },
+  "topBank": {
+    "id": 2,
+    "name": "Telepagos",
+    "calculationCount": 3
+  }
+}
+
+### Respuesta sin liquidaciones
+
+Cuando no existen liquidaciones para el período consultado, los valores numéricos se devuelven en cero y los rankings se devuelven como null.
+
+json
+{
+  "from": "2026-07-01",
+  "to": "2026-07-31",
+  "calculationCount": 0,
+  "totalCollectionAmount": 0,
+  "totalCommissionAmount": 0,
+  "bankCommissionAmount": 0,
+  "clientCommissionAmount": 0,
+  "ownCommissionAmount": 0,
+  "averageCollectionAmount": 0,
+  "topGroup": null,
+  "topBank": null
+}
+
+### Respuestas HTTP
+
+- **200 OK** cuando la consulta se realiza correctamente.
+- **400 Bad Request** cuando la fecha inicial es posterior a la fecha final.
+- **400 Bad Request** cuando alguno de los parámetros tiene un formato inválido.

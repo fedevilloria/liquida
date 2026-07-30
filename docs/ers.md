@@ -351,7 +351,7 @@ La transformación de entidades persistentes a DTOs de respuesta deberá central
 ## Estado de implementación
 
 | Código | Funcionalidad | Estado |
-|---|---|---|
+|--------|---------------|--------|
 | RF01 | Registrar grupos | Implementado |
 | RF02 | Consultar grupos | Implementado |
 | RF03 | Modificar grupos | Implementado |

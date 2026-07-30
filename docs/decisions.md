@@ -380,3 +380,58 @@ Los siguientes métodos devuelven DTOs de respuesta desde el servicio:
 - Consulta paginada del historial.
 
 Los controladores delegan la operación al servicio y devuelven directamente el resultado.
+
+---
+
+## DEC-023 — Estrategia de pruebas unitarias
+
+**Estado:** Aceptada
+
+### Decisión
+
+Los servicios y controladores del backend serán probados mediante pruebas unitarias ejecutadas con Jest y las herramientas de testing de NestJS.
+
+Las pruebas reemplazarán las dependencias externas mediante mocks, evitando utilizar una conexión real con PostgreSQL.
+
+Se utilizarán mocks para:
+
+- Repositorios de TypeORM.
+- Servicios dependientes.
+- Métodos de persistencia.
+- Métodos de consulta.
+- `QueryBuilder`.
+
+Los datos repetidos de prueba se construirán mediante fixtures reutilizables.
+
+### Motivo
+
+- Mantener las pruebas aisladas de la base de datos.
+- Evitar modificaciones sobre datos reales.
+- Permitir una ejecución rápida y repetible.
+- Probar cada unidad de forma independiente.
+- Simular escenarios exitosos y de error de manera controlada.
+- Facilitar la detección de regresiones.
+- Reducir la duplicación dentro de los archivos de prueba.
+- Verificar reglas de negocio sin depender de Postman ni de servicios externos.
+
+### Implementación
+
+El servicio de liquidaciones utiliza fixtures reutilizables para construir:
+
+- DTOs de registro.
+- Grupos.
+- Bancos.
+- Liquidaciones.
+
+Las consultas construidas con TypeORM se prueban mediante un mock encadenable de `QueryBuilder`.
+
+Los métodos de construcción del mock utilizan `mockReturnThis()` para permitir llamadas como:
+
+```ts
+query
+  .leftJoinAndSelect(...)
+  .andWhere(...)
+  .orderBy(...)
+  .skip(...)
+  .take(...)
+  .getManyAndCount();
