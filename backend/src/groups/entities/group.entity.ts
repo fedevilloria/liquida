@@ -1,11 +1,18 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity } from 'typeorm';
 
 import { BaseEntity } from '../../common/entities/base.entity';
 
 @Entity('groups')
 export class Group extends BaseEntity {
-  // El valor será asignado al crear la entidad
-  // a partir de los datos recibidos en el DTO.
+  /**
+   * Nombre identificador del grupo.
+   */
+  @ApiProperty({
+    description: 'Nombre identificador del grupo.',
+    example: 'Grupo Norte',
+    maxLength: 100,
+  })
   @Column({
     type: 'varchar',
     length: 100,
@@ -13,8 +20,16 @@ export class Group extends BaseEntity {
   })
   name!: string;
 
-  // PostgreSQL utilizará true como valor predeterminado
-  // cuando no se indique otro valor al crear el registro.
+  /**
+   * Indica si el grupo se encuentra disponible
+   * para utilizarse en nuevas liquidaciones.
+   */
+  @ApiProperty({
+    description:
+      'Indica si el grupo se encuentra activo y disponible para nuevas liquidaciones.',
+    example: true,
+    default: true,
+  })
   @Column({
     type: 'boolean',
     default: true,

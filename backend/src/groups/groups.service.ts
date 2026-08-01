@@ -97,10 +97,7 @@ export class GroupsService {
    * Si se modifica el nombre, se valida que el nuevo valor
    * no esté siendo utilizado por otro registro.
    */
-  async update(
-    id: number,
-    updateGroupDto: UpdateGroupDto,
-  ): Promise<Group> {
+  async update(id: number, updateGroupDto: UpdateGroupDto): Promise<Group> {
     const group = await this.findOne(id);
 
     if (

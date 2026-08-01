@@ -48,9 +48,7 @@ const createRegisterDto = (
 /**
  * Crea un grupo activo de prueba.
  */
-const createGroup = (
-  overrides: Partial<GroupFixture> = {},
-): GroupFixture => ({
+const createGroup = (overrides: Partial<GroupFixture> = {}): GroupFixture => ({
   id: 1,
   name: 'Silvina C',
   active: true,
@@ -60,9 +58,7 @@ const createGroup = (
 /**
  * Crea un banco activo con una comisión del 0,3%.
  */
-const createBank = (
-  overrides: Partial<BankFixture> = {},
-): BankFixture => ({
+const createBank = (overrides: Partial<BankFixture> = {}): BankFixture => ({
   id: 1,
   name: 'Copter',
   active: true,
@@ -139,9 +135,7 @@ describe('CommissionCalculationsService', () => {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
-    createQueryBuilder: jest
-      .fn()
-      .mockReturnValue(queryBuilderMock),
+    createQueryBuilder: jest.fn().mockReturnValue(queryBuilderMock),
   };
 
   /**
@@ -215,13 +209,9 @@ describe('CommissionCalculationsService', () => {
       groupsServiceMock.findOne.mockResolvedValue(group);
       banksServiceMock.findOne.mockResolvedValue(bank);
 
-      commissionCalculationsRepositoryMock.create.mockReturnValue(
-        calculation,
-      );
+      commissionCalculationsRepositoryMock.create.mockReturnValue(calculation);
 
-      commissionCalculationsRepositoryMock.save.mockResolvedValue(
-        calculation,
-      );
+      commissionCalculationsRepositoryMock.save.mockResolvedValue(calculation);
 
       const result = await service.registerCalculation(registerDto);
 
@@ -229,13 +219,9 @@ describe('CommissionCalculationsService', () => {
         registerDto.groupId,
       );
 
-      expect(banksServiceMock.findOne).toHaveBeenCalledWith(
-        registerDto.bankId,
-      );
+      expect(banksServiceMock.findOne).toHaveBeenCalledWith(registerDto.bankId);
 
-      expect(
-        commissionCalculationsRepositoryMock.create,
-      ).toHaveBeenCalledWith({
+      expect(commissionCalculationsRepositoryMock.create).toHaveBeenCalledWith({
         collectionAmount: 2500000,
         totalCommissionPercentage: 2.5,
         bankCommissionPercentage: 0.3,
@@ -251,9 +237,9 @@ describe('CommissionCalculationsService', () => {
         bank,
       });
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).toHaveBeenCalledWith(calculation);
+      expect(commissionCalculationsRepositoryMock.save).toHaveBeenCalledWith(
+        calculation,
+      );
 
       expect(result).toEqual({
         id: 9,
@@ -285,9 +271,7 @@ describe('CommissionCalculationsService', () => {
 
       groupsServiceMock.findOne.mockResolvedValue(inactiveGroup);
 
-      await expect(
-        service.registerCalculation(registerDto),
-      ).rejects.toThrow(
+      await expect(service.registerCalculation(registerDto)).rejects.toThrow(
         'El grupo "Silvina C" se encuentra inactivo.',
       );
 
@@ -298,9 +282,7 @@ describe('CommissionCalculationsService', () => {
         commissionCalculationsRepositoryMock.create,
       ).not.toHaveBeenCalled();
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).not.toHaveBeenCalled();
+      expect(commissionCalculationsRepositoryMock.save).not.toHaveBeenCalled();
     });
 
     it('debe lanzar una excepción cuando el banco está inactivo', async () => {
@@ -315,9 +297,7 @@ describe('CommissionCalculationsService', () => {
       groupsServiceMock.findOne.mockResolvedValue(group);
       banksServiceMock.findOne.mockResolvedValue(inactiveBank);
 
-      await expect(
-        service.registerCalculation(registerDto),
-      ).rejects.toThrow(
+      await expect(service.registerCalculation(registerDto)).rejects.toThrow(
         'El banco "Copter" se encuentra inactivo.',
       );
 
@@ -328,9 +308,7 @@ describe('CommissionCalculationsService', () => {
         commissionCalculationsRepositoryMock.create,
       ).not.toHaveBeenCalled();
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).not.toHaveBeenCalled();
+      expect(commissionCalculationsRepositoryMock.save).not.toHaveBeenCalled();
     });
 
     it('debe lanzar una excepción cuando la suma de las comisiones supera la comisión total', async () => {
@@ -351,9 +329,7 @@ describe('CommissionCalculationsService', () => {
       groupsServiceMock.findOne.mockResolvedValue(group);
       banksServiceMock.findOne.mockResolvedValue(bank);
 
-      await expect(
-        service.registerCalculation(registerDto),
-      ).rejects.toThrow(
+      await expect(service.registerCalculation(registerDto)).rejects.toThrow(
         'La suma de la comisión del banco y la comisión del cliente no puede superar la comisión total.',
       );
 
@@ -361,9 +337,7 @@ describe('CommissionCalculationsService', () => {
         commissionCalculationsRepositoryMock.create,
       ).not.toHaveBeenCalled();
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).not.toHaveBeenCalled();
+      expect(commissionCalculationsRepositoryMock.save).not.toHaveBeenCalled();
     });
 
     it('debe registrar correctamente una liquidación sin comisión del cliente', async () => {
@@ -396,19 +370,13 @@ describe('CommissionCalculationsService', () => {
       groupsServiceMock.findOne.mockResolvedValue(group);
       banksServiceMock.findOne.mockResolvedValue(bank);
 
-      commissionCalculationsRepositoryMock.create.mockReturnValue(
-        calculation,
-      );
+      commissionCalculationsRepositoryMock.create.mockReturnValue(calculation);
 
-      commissionCalculationsRepositoryMock.save.mockResolvedValue(
-        calculation,
-      );
+      commissionCalculationsRepositoryMock.save.mockResolvedValue(calculation);
 
       const result = await service.registerCalculation(registerDto);
 
-      expect(
-        commissionCalculationsRepositoryMock.create,
-      ).toHaveBeenCalledWith({
+      expect(commissionCalculationsRepositoryMock.create).toHaveBeenCalledWith({
         collectionAmount: 1800000,
         totalCommissionPercentage: 2.5,
         bankCommissionPercentage: 0.3,
@@ -424,9 +392,9 @@ describe('CommissionCalculationsService', () => {
         bank,
       });
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).toHaveBeenCalledWith(calculation);
+      expect(commissionCalculationsRepositoryMock.save).toHaveBeenCalledWith(
+        calculation,
+      );
 
       expect(result.clientCommissionPercentage).toBeNull();
       expect(result.clientCommissionAmount).toBeNull();
@@ -442,9 +410,9 @@ describe('CommissionCalculationsService', () => {
         new Error('Grupo no encontrado'),
       );
 
-      await expect(
-        service.registerCalculation(registerDto),
-      ).rejects.toThrow('Grupo no encontrado');
+      await expect(service.registerCalculation(registerDto)).rejects.toThrow(
+        'Grupo no encontrado',
+      );
 
       expect(groupsServiceMock.findOne).toHaveBeenCalledWith(999);
       expect(banksServiceMock.findOne).not.toHaveBeenCalled();
@@ -453,9 +421,7 @@ describe('CommissionCalculationsService', () => {
         commissionCalculationsRepositoryMock.create,
       ).not.toHaveBeenCalled();
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).not.toHaveBeenCalled();
+      expect(commissionCalculationsRepositoryMock.save).not.toHaveBeenCalled();
     });
 
     it('debe propagar la excepción cuando el banco no existe', async () => {
@@ -471,9 +437,9 @@ describe('CommissionCalculationsService', () => {
         new Error('Banco no encontrado'),
       );
 
-      await expect(
-        service.registerCalculation(registerDto),
-      ).rejects.toThrow('Banco no encontrado');
+      await expect(service.registerCalculation(registerDto)).rejects.toThrow(
+        'Banco no encontrado',
+      );
 
       expect(groupsServiceMock.findOne).toHaveBeenCalledWith(1);
       expect(banksServiceMock.findOne).toHaveBeenCalledWith(999);
@@ -482,9 +448,7 @@ describe('CommissionCalculationsService', () => {
         commissionCalculationsRepositoryMock.create,
       ).not.toHaveBeenCalled();
 
-      expect(
-        commissionCalculationsRepositoryMock.save,
-      ).not.toHaveBeenCalled();
+      expect(commissionCalculationsRepositoryMock.save).not.toHaveBeenCalled();
     });
   });
 
@@ -500,17 +464,17 @@ describe('CommissionCalculationsService', () => {
 
       const result = await service.findOne(15);
 
-      expect(
-        commissionCalculationsRepositoryMock.findOne,
-      ).toHaveBeenCalledWith({
-        where: {
-          id: 15,
+      expect(commissionCalculationsRepositoryMock.findOne).toHaveBeenCalledWith(
+        {
+          where: {
+            id: 15,
+          },
+          relations: {
+            group: true,
+            bank: true,
+          },
         },
-        relations: {
-          group: true,
-          bank: true,
-        },
-      });
+      );
 
       expect(result).toEqual({
         id: 15,
@@ -519,59 +483,45 @@ describe('CommissionCalculationsService', () => {
         bankId: calculation.bank.id,
         bankName: calculation.bank.name,
         collectionAmount: calculation.collectionAmount,
-        totalCommissionPercentage:
-          calculation.totalCommissionPercentage,
-        bankCommissionPercentage:
-          calculation.bankCommissionPercentage,
-        clientCommissionPercentage:
-          calculation.clientCommissionPercentage,
-        ownCommissionPercentage:
-          calculation.ownCommissionPercentage,
-        totalCommissionAmount:
-          calculation.totalCommissionAmount,
-        bankCommissionAmount:
-          calculation.bankCommissionAmount,
-        clientCommissionAmount:
-          calculation.clientCommissionAmount,
-        ownCommissionAmount:
-          calculation.ownCommissionAmount,
-        calculationDateTime:
-          calculation.calculationDateTime,
+        totalCommissionPercentage: calculation.totalCommissionPercentage,
+        bankCommissionPercentage: calculation.bankCommissionPercentage,
+        clientCommissionPercentage: calculation.clientCommissionPercentage,
+        ownCommissionPercentage: calculation.ownCommissionPercentage,
+        totalCommissionAmount: calculation.totalCommissionAmount,
+        bankCommissionAmount: calculation.bankCommissionAmount,
+        clientCommissionAmount: calculation.clientCommissionAmount,
+        ownCommissionAmount: calculation.ownCommissionAmount,
+        calculationDateTime: calculation.calculationDateTime,
         notes: calculation.notes,
         createdAt: calculation.createdAt,
       });
     });
 
     it('debe lanzar una excepción cuando la liquidación no existe', async () => {
-      commissionCalculationsRepositoryMock.findOne.mockResolvedValue(
-        null,
-      );
+      commissionCalculationsRepositoryMock.findOne.mockResolvedValue(null);
 
       await expect(service.findOne(999)).rejects.toThrow(
         'No se encontró la liquidación con ID 999.',
       );
 
-      expect(
-        commissionCalculationsRepositoryMock.findOne,
-      ).toHaveBeenCalledWith({
-        where: {
-          id: 999,
+      expect(commissionCalculationsRepositoryMock.findOne).toHaveBeenCalledWith(
+        {
+          where: {
+            id: 999,
+          },
+          relations: {
+            group: true,
+            bank: true,
+          },
         },
-        relations: {
-          group: true,
-          bank: true,
-        },
-      });
+      );
     });
 
     describe('findAll', () => {
       it('debe devolver la primera página del historial sin filtros', async () => {
         const calculation = createCalculation();
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           page: 1,
@@ -584,18 +534,13 @@ describe('CommissionCalculationsService', () => {
           commissionCalculationsRepositoryMock.createQueryBuilder,
         ).toHaveBeenCalledWith('calculation');
 
-        expect(
-          queryBuilderMock.leftJoinAndSelect,
-        ).toHaveBeenNthCalledWith(
-
+        expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenNthCalledWith(
           1,
           'calculation.group',
           'group',
         );
 
-        expect(
-          queryBuilderMock.leftJoinAndSelect,
-        ).toHaveBeenNthCalledWith(
+        expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenNthCalledWith(
           2,
           'calculation.bank',
           'bank',
@@ -632,10 +577,7 @@ describe('CommissionCalculationsService', () => {
           }) as CommissionCalculation['group'],
         });
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           groupId: 3,
@@ -686,10 +628,7 @@ describe('CommissionCalculationsService', () => {
           }) as CommissionCalculation['bank'],
         });
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           bankId: 2,
@@ -727,10 +666,7 @@ describe('CommissionCalculationsService', () => {
           }) as CommissionCalculation['bank'],
         });
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           groupId: 3,
@@ -774,9 +710,7 @@ describe('CommissionCalculationsService', () => {
           sortOrder: 'DESC',
         };
 
-        await expect(
-          service.findAll(filters),
-        ).rejects.toThrow(
+        await expect(service.findAll(filters)).rejects.toThrow(
           'La fecha inicial no puede ser posterior a la fecha final.',
         );
 
@@ -787,18 +721,13 @@ describe('CommissionCalculationsService', () => {
         expect(queryBuilderMock.orderBy).not.toHaveBeenCalled();
         expect(queryBuilderMock.skip).not.toHaveBeenCalled();
         expect(queryBuilderMock.take).not.toHaveBeenCalled();
-        expect(
-          queryBuilderMock.getManyAndCount,
-        ).not.toHaveBeenCalled();
+        expect(queryBuilderMock.getManyAndCount).not.toHaveBeenCalled();
       });
 
       it('debe aplicar el filtro por rango de fechas', async () => {
         const calculation = createCalculation();
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           from: '2026-07-01',
@@ -848,10 +777,7 @@ describe('CommissionCalculationsService', () => {
          * Simulamos que existen 45 registros en total,
          * aunque la página actual devuelve solamente dos entidades.
          */
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          calculations,
-          45,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([calculations, 45]);
 
         const result = await service.findAll({
           page: 3,
@@ -883,10 +809,7 @@ describe('CommissionCalculationsService', () => {
       it('debe ordenar el historial por monto recaudado de forma ascendente', async () => {
         const calculation = createCalculation();
 
-        queryBuilderMock.getManyAndCount.mockResolvedValue([
-          [calculation],
-          1,
-        ]);
+        queryBuilderMock.getManyAndCount.mockResolvedValue([[calculation], 1]);
 
         const result = await service.findAll({
           page: 1,

@@ -1,4 +1,5 @@
-import { Transform, Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -21,7 +22,12 @@ export class CreateBankDto {
    * Se eliminan los espacios innecesarios al comienzo
    * y al final antes de realizar las validaciones.
    */
-  @Transform(({ value }) =>
+  @ApiProperty({
+    description: 'Nombre identificador del banco o medio de cobro.',
+    example: 'Banco Macro',
+    maxLength: 100,
+  })
+  @Transform(({ value }: TransformFnParams): unknown =>
     typeof value === 'string' ? value.trim() : value,
   )
   @IsString({
@@ -41,6 +47,13 @@ export class CreateBankDto {
    * Type transforma valores numéricos recibidos como texto,
    * por ejemplo "0.8", en un número.
    */
+  @ApiProperty({
+    description: 'Porcentaje de comisión cobrado por el banco.',
+    example: 0.8,
+    minimum: 0,
+    maximum: 100,
+    multipleOf: 0.01,
+  })
   @Type(() => Number)
   @IsNumber(
     {

@@ -4,12 +4,16 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 /**
  * Construye la configuración de PostgreSQL utilizando ConfigService.
  *
- * Esto garantiza que las variables del archivo .env ya hayan sido
- * cargadas antes de intentar establecer la conexión con la base de datos.
+ * Las variables ya fueron validadas y transformadas
+ * por ConfigModule antes de ejecutar esta función.
  */
 export const createDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => {
+  const nodeEnvironment = configService.getOrThrow<string>('NODE_ENV');
+
+  const isProduction = nodeEnvironment === 'production';
+
   return {
     type: 'postgres',
 
@@ -23,12 +27,26 @@ export const createDatabaseConfig = (
 
     database: configService.getOrThrow<string>('DB_NAME'),
 
-    // Detecta automáticamente las entidades registradas
-    // mediante TypeOrmModule.forFeature().
+    /**
+     * Detecta automáticamente las entidades registradas
+     * mediante TypeOrmModule.forFeature().
+     */
     autoLoadEntities: true,
 
-    // Mantiene la estructura de las tablas sincronizada
-    // durante el desarrollo del sistema.
-    synchronize: true,
+    /**
+     * Durante el desarrollo, TypeORM puede mantener
+     * automáticamente sincronizada la estructura.
+     *
+     * En producción se desactiva para evitar modificaciones
+     * automáticas del esquema. Allí deberán utilizarse
+     * migraciones o un esquema preparado previamente.
+     */
+    synchronize: !isProduction,
+
+    /**
+     * Muestra consultas y errores de base de datos
+     * únicamente fuera del entorno productivo.
+     */
+    logging: !isProduction,
   };
 };

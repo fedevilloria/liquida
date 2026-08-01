@@ -1,4 +1,5 @@
-import { Transform, Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsDate,
   IsInt,
@@ -22,6 +23,11 @@ export class RegisterCommissionCalculationDto {
   /**
    * Identificador del grupo asociado a la recaudación.
    */
+  @ApiProperty({
+    description: 'Identificador del grupo asociado a la recaudación.',
+    example: 1,
+    minimum: 1,
+  })
   @Type(() => Number)
   @IsInt({
     message: 'El identificador del grupo debe ser un número entero.',
@@ -34,6 +40,12 @@ export class RegisterCommissionCalculationDto {
   /**
    * Identificador del banco cuya comisión será utilizada.
    */
+  @ApiProperty({
+    description:
+      'Identificador del banco cuya comisión se utilizará en la liquidación.',
+    example: 2,
+    minimum: 1,
+  })
   @Type(() => Number)
   @IsInt({
     message: 'El identificador del banco debe ser un número entero.',
@@ -49,14 +61,19 @@ export class RegisterCommissionCalculationDto {
    * Se permiten hasta dos decimales porque representa
    * un importe monetario.
    */
+  @ApiProperty({
+    description: 'Monto total recaudado por el grupo.',
+    example: 2500000,
+    minimum: 0.01,
+    multipleOf: 0.01,
+  })
   @Type(() => Number)
   @IsNumber(
     {
       maxDecimalPlaces: 2,
     },
     {
-      message:
-        'El monto recaudado debe ser un número con hasta 2 decimales.',
+      message: 'El monto recaudado debe ser un número con hasta 2 decimales.',
     },
   )
   @Min(0.01, {
@@ -68,14 +85,21 @@ export class RegisterCommissionCalculationDto {
    * Porcentaje total de comisión aplicado
    * sobre el monto recaudado.
    */
+  @ApiProperty({
+    description:
+      'Porcentaje total de comisión aplicado sobre el monto recaudado.',
+    example: 2.5,
+    minimum: 0,
+    maximum: 100,
+    multipleOf: 0.01,
+  })
   @Type(() => Number)
   @IsNumber(
     {
       maxDecimalPlaces: 2,
     },
     {
-      message:
-        'La comisión total debe ser un número con hasta 2 decimales.',
+      message: 'La comisión total debe ser un número con hasta 2 decimales.',
     },
   )
   @Min(0, {
@@ -92,6 +116,14 @@ export class RegisterCommissionCalculationDto {
    * Cuando no se envía, el sistema realizará el cálculo
    * considerando que la comisión del cliente es cero.
    */
+  @ApiPropertyOptional({
+    description:
+      'Porcentaje de comisión correspondiente al cliente. Cuando se omite, se considera cero para el cálculo.',
+    example: 1,
+    minimum: 0,
+    maximum: 100,
+    multipleOf: 0.01,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber(
@@ -118,10 +150,16 @@ export class RegisterCommissionCalculationDto {
    * Type convierte la fecha recibida en formato ISO
    * a una instancia de Date.
    */
+  @ApiProperty({
+    description:
+      'Fecha y hora de corte hasta la cual se consideran los comprobantes incluidos.',
+    example: '2026-07-30T18:00:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
   @Type(() => Date)
   @IsDate({
-    message:
-      'La fecha y hora de corte debe tener un formato válido.',
+    message: 'La fecha y hora de corte debe tener un formato válido.',
   })
   calculationDateTime!: Date;
 
@@ -131,8 +169,13 @@ export class RegisterCommissionCalculationDto {
    * Se eliminan los espacios innecesarios ubicados
    * al comienzo y al final del texto.
    */
+  @ApiPropertyOptional({
+    description: 'Observación opcional asociada a la liquidación.',
+    example: 'Liquidación correspondiente al cierre de julio.',
+    maxLength: 300,
+  })
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: TransformFnParams): unknown =>
     typeof value === 'string' ? value.trim() : value,
   )
   @IsString({

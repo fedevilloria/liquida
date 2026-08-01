@@ -90,16 +90,10 @@ export class BanksService {
    * Si se cambia el nombre, valida que no esté siendo
    * utilizado por otro registro.
    */
-  async update(
-    id: number,
-    updateBankDto: UpdateBankDto,
-  ): Promise<Bank> {
+  async update(id: number, updateBankDto: UpdateBankDto): Promise<Bank> {
     const bank = await this.findOne(id);
 
-    if (
-      updateBankDto.name !== undefined &&
-      updateBankDto.name !== bank.name
-    ) {
+    if (updateBankDto.name !== undefined && updateBankDto.name !== bank.name) {
       await this.validateUniqueName(updateBankDto.name, id);
     }
 

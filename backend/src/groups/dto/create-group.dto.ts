@@ -1,5 +1,6 @@
-import { Transform } from 'class-transformer';
+import { Transform, TransformFnParams } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * DTO utilizado para registrar un nuevo grupo.
@@ -14,7 +15,12 @@ export class CreateGroupDto {
    * Transform elimina espacios innecesarios al comienzo
    * y al final antes de ejecutar las validaciones.
    */
-  @Transform(({ value }) =>
+  @ApiProperty({
+    description: 'Nombre identificador del grupo.',
+    example: 'Grupo Norte',
+    maxLength: 100,
+  })
+  @Transform(({ value }: TransformFnParams): unknown =>
     typeof value === 'string' ? value.trim() : value,
   )
   @IsString({

@@ -1,9 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 import { Bank } from '../../banks/entities/bank.entity';
 import { BaseEntity } from '../../common/entities/base.entity';
@@ -99,7 +94,7 @@ export class CommissionCalculation extends BaseEntity {
   })
   ownCommissionAmount!: number;
 
-    // Fecha a la que corresponde la liquidación.
+  // Fecha a la que corresponde la liquidación.
   //
   // Puede ser diferente de createdAt, ya que el registro
   // podría cargarse días después de realizada la recaudación.

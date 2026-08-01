@@ -116,45 +116,39 @@ export class CommissionCalculationsService {
     );
 
     // Construye la entidad en memoria.
-    const calculation =
-      this.commissionCalculationsRepository.create({
-        collectionAmount: registerDto.collectionAmount,
+    const calculation = this.commissionCalculationsRepository.create({
+      collectionAmount: registerDto.collectionAmount,
 
-        totalCommissionPercentage:
-          registerDto.totalCommissionPercentage,
+      totalCommissionPercentage: registerDto.totalCommissionPercentage,
 
-        bankCommissionPercentage,
+      bankCommissionPercentage,
 
-        // Se guarda null cuando la liquidación no incluye
-        // una comisión destinada al cliente.
-        clientCommissionPercentage:
-          registerDto.clientCommissionPercentage ?? null,
+      // Se guarda null cuando la liquidación no incluye
+      // una comisión destinada al cliente.
+      clientCommissionPercentage:
+        registerDto.clientCommissionPercentage ?? null,
 
-        ownCommissionPercentage:
-          this.roundToTwoDecimals(ownCommissionPercentage),
+      ownCommissionPercentage: this.roundToTwoDecimals(ownCommissionPercentage),
 
-        totalCommissionAmount,
-        bankCommissionAmount,
-        clientCommissionAmount,
-        ownCommissionAmount,
+      totalCommissionAmount,
+      bankCommissionAmount,
+      clientCommissionAmount,
+      ownCommissionAmount,
 
-        calculationDateTime:
-          registerDto.calculationDateTime,
+      calculationDateTime: registerDto.calculationDateTime,
 
-        notes: registerDto.notes ?? null,
+      notes: registerDto.notes ?? null,
 
-        group,
-        bank,
-      });
+      group,
+      bank,
+    });
 
     // Persiste la entidad en la base de datos.
     const savedCalculation =
       await this.commissionCalculationsRepository.save(calculation);
 
     // Devuelve el DTO de respuesta.
-    return CommissionCalculationResponseDto.fromEntity(
-      savedCalculation,
-    );
+    return CommissionCalculationResponseDto.fromEntity(savedCalculation);
   }
 
   /**
@@ -213,28 +207,23 @@ export class CommissionCalculationsService {
     this.applyDateFilters(query, filters);
 
     // Ordena el historial según los parámetros enviados.
-    query.orderBy(
-      `calculation.${filters.sortBy}`,
-      filters.sortOrder
-    );
+    query.orderBy(`calculation.${filters.sortBy}`, filters.sortOrder);
 
     // Aplica la paginación.
     query.skip(skip).take(limit);
 
     // Obtiene los registros de la página solicitada
     // y la cantidad total de registros que cumplen los filtros.
-    const [calculations, totalItems] =
-      await query.getManyAndCount();
+    const [calculations, totalItems] = await query.getManyAndCount();
 
     // Calcula la cantidad total de páginas disponibles.
     const totalPages = Math.ceil(totalItems / limit);
 
     // Convierte las entidades obtenidas desde PostgreSQL
     // al formato público utilizado por la API.
-    const data: CommissionCalculationResponseDto[] =
-      calculations.map((calculation) =>
-        CommissionCalculationResponseDto.fromEntity(calculation),
-      );
+    const data: CommissionCalculationResponseDto[] = calculations.map(
+      (calculation) => CommissionCalculationResponseDto.fromEntity(calculation),
+    );
 
     // Construye la respuesta con los registros obtenidos
     // y los metadatos necesarios para navegar entre páginas.
@@ -257,16 +246,15 @@ export class CommissionCalculationsService {
    * Si no existe, devuelve una respuesta HTTP 404.
    */
   async findOne(id: number): Promise<CommissionCalculationResponseDto> {
-    const calculation =
-      await this.commissionCalculationsRepository.findOne({
-        where: {
-          id,
-        },
-        relations: {
-          group: true,
-          bank: true,
-        },
-      });
+    const calculation = await this.commissionCalculationsRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        group: true,
+        bank: true,
+      },
+    });
 
     if (!calculation) {
       throw new NotFoundException(
@@ -274,14 +262,12 @@ export class CommissionCalculationsService {
       );
     }
 
-    return CommissionCalculationResponseDto.fromEntity(
-      calculation,
-    );
+    return CommissionCalculationResponseDto.fromEntity(calculation);
   }
 
   /**
    * Obtiene las estadísticas generales del dashboard.
-  *
+   *
    * Permite limitar los resultados a un período determinado.
    */
   async getDashboard(
@@ -306,10 +292,7 @@ export class CommissionCalculationsService {
     // cantidad de registros y promedio.
     const query = this.commissionCalculationsRepository
       .createQueryBuilder('calculation')
-      .select(
-        'COUNT(calculation.id)',
-        'calculationCount',
-      )
+      .select('COUNT(calculation.id)', 'calculationCount')
       .addSelect(
         'COALESCE(SUM(calculation.collectionAmount), 0)',
         'totalCollectionAmount',
@@ -359,16 +342,10 @@ export class CommissionCalculationsService {
       .innerJoin('calculation.group', 'group')
       .select('group.id', 'id')
       .addSelect('group.name', 'name')
-      .addSelect(
-        'SUM(calculation.collectionAmount)',
-        'totalCollectionAmount',
-      )
+      .addSelect('SUM(calculation.collectionAmount)', 'totalCollectionAmount')
       .groupBy('group.id')
       .addGroupBy('group.name')
-      .orderBy(
-        'SUM(calculation.collectionAmount)',
-        'DESC',
-      )
+      .orderBy('SUM(calculation.collectionAmount)', 'DESC')
       .limit(1);
 
     this.applyDateFilters(topGroupQuery, filters);
@@ -389,16 +366,10 @@ export class CommissionCalculationsService {
       .innerJoin('calculation.bank', 'bank')
       .select('bank.id', 'id')
       .addSelect('bank.name', 'name')
-      .addSelect(
-        'COUNT(calculation.id)',
-        'calculationCount',
-      )
+      .addSelect('COUNT(calculation.id)', 'calculationCount')
       .groupBy('bank.id')
       .addGroupBy('bank.name')
-      .orderBy(
-        'COUNT(calculation.id)',
-        'DESC',
-      )
+      .orderBy('COUNT(calculation.id)', 'DESC')
       .limit(1);
 
     this.applyDateFilters(topBankQuery, filters);
@@ -415,9 +386,7 @@ export class CommissionCalculationsService {
 
       // PostgreSQL devuelve COUNT, SUM y AVG como texto en este tipo
       // de consulta, por lo que se convierten explícitamente a number.
-      calculationCount: Number(
-        result?.calculationCount ?? 0,
-      ),
+      calculationCount: Number(result?.calculationCount ?? 0),
 
       totalCollectionAmount: this.roundToTwoDecimals(
         Number(result?.totalCollectionAmount ?? 0),
@@ -457,9 +426,7 @@ export class CommissionCalculationsService {
         ? {
             id: Number(topBankResult.id),
             name: topBankResult.name,
-            calculationCount: Number(
-              topBankResult.calculationCount,
-            ),
+            calculationCount: Number(topBankResult.calculationCount),
           }
         : null,
     };
@@ -473,9 +440,7 @@ export class CommissionCalculationsService {
     amount: number,
     percentage: number,
   ): number {
-    return this.roundToTwoDecimals(
-      (amount * percentage) / 100,
-    );
+    return this.roundToTwoDecimals((amount * percentage) / 100);
   }
 
   /**
@@ -486,9 +451,7 @@ export class CommissionCalculationsService {
    * en JavaScript.
    */
   private roundToTwoDecimals(value: number): number {
-    return (
-      Math.round((value + Number.EPSILON) * 100) / 100
-    );
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
   /**
    * Aplica los filtros de fechas a una consulta.
@@ -504,23 +467,17 @@ export class CommissionCalculationsService {
     // Incluye las liquidaciones desde el inicio
     // completo del día indicado.
     if (filters.from !== undefined) {
-      query.andWhere(
-        'calculation.calculationDateTime >= :fromDateTime',
-        {
-          fromDateTime: `${filters.from} 00:00:00.000`,
-        },
-      );
+      query.andWhere('calculation.calculationDateTime >= :fromDateTime', {
+        fromDateTime: `${filters.from} 00:00:00.000`,
+      });
     }
 
     // Incluye las liquidaciones hasta el final
     // completo del día indicado.
     if (filters.to !== undefined) {
-      query.andWhere(
-        'calculation.calculationDateTime <= :toDateTime',
-        {
-          toDateTime: `${filters.to} 23:59:59.999`,
-        },
-      );
+      query.andWhere('calculation.calculationDateTime <= :toDateTime', {
+        toDateTime: `${filters.to} 23:59:59.999`,
+      });
     }
   }
 }

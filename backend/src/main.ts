@@ -1,17 +1,28 @@
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const configService = app.get(ConfigService);
+
+  const port = configService.getOrThrow<number>('PORT');
+
+  const frontendUrl = configService.getOrThrow<string>('FRONTEND_URL');
+
+  const swaggerEnabled = configService.getOrThrow<boolean>('SWAGGER_ENABLED');
+
   /**
-   * Valida automáticamente los DTO recibidos por los endpoints.
+   * Valida automáticamente los DTO recibidos
+   * por los endpoints.
    *
-   * whitelist elimina propiedades que no están declaradas en el DTO.
-   * forbidNonWhitelisted genera un error si se envían campos desconocidos.
-   * transform convierte parámetros como "1" al tipo esperado cuando es posible.
+   * whitelist elimina propiedades no declaradas.
+   * forbidNonWhitelisted rechaza campos desconocidos.
+   * transform convierte los valores al tipo esperado.
    */
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,7 +32,40 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  /**
+   * Permite que el futuro frontend Angular
+   * consuma la API desde otro origen.
+   *
+   * El origen permitido se configura mediante
+   * la variable FRONTEND_URL.
+   */
+  app.enableCors({
+    origin: frontendUrl,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    credentials: true,
+  });
+
+  /**
+   * Swagger puede habilitarse o deshabilitarse
+   * mediante la variable SWAGGER_ENABLED.
+   */
+  if (swaggerEnabled) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Liquida API')
+      .setDescription(
+        'API REST para la gestión de grupos, bancos y liquidaciones de comisiones.',
+      )
+      .setVersion('1.0.0')
+      .build();
+
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+
+    SwaggerModule.setup('api/docs', app, swaggerDocument, {
+      customSiteTitle: 'Liquida API',
+    });
+  }
+
+  await app.listen(port);
 }
 
 void bootstrap();

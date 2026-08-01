@@ -1,4 +1,5 @@
-import { Transform, Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
@@ -39,6 +40,12 @@ export class FindCommissionCalculationsDto {
    * Filtra las liquidaciones pertenecientes
    * a un grupo específico.
    */
+  @ApiPropertyOptional({
+    description: 'Identificador del grupo utilizado para filtrar el historial.',
+    example: 1,
+    minimum: 1,
+    type: Number,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt({
@@ -53,6 +60,12 @@ export class FindCommissionCalculationsDto {
    * Filtra las liquidaciones realizadas
    * utilizando un banco específico.
    */
+  @ApiPropertyOptional({
+    description: 'Identificador del banco utilizado para filtrar el historial.',
+    example: 2,
+    minimum: 1,
+    type: Number,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt({
@@ -69,6 +82,13 @@ export class FindCommissionCalculationsDto {
    * Se recibe sin hora porque representa el comienzo
    * completo del día indicado.
    */
+  @ApiPropertyOptional({
+    description:
+      'Fecha inicial del período. Incluye las liquidaciones desde las 00:00:00.000 del día indicado.',
+    example: '2026-07-01',
+    type: String,
+    format: 'date',
+  })
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, {
     message: 'La fecha inicial debe tener el formato YYYY-MM-DD.',
@@ -81,6 +101,13 @@ export class FindCommissionCalculationsDto {
    * El servicio incluirá todo el día indicado,
    * hasta las 23:59:59.999.
    */
+  @ApiPropertyOptional({
+    description:
+      'Fecha final del período. Incluye las liquidaciones hasta las 23:59:59.999 del día indicado.',
+    example: '2026-07-31',
+    type: String,
+    format: 'date',
+  })
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, {
     message: 'La fecha final debe tener el formato YYYY-MM-DD.',
@@ -92,6 +119,13 @@ export class FindCommissionCalculationsDto {
    *
    * Si no se envía, se utiliza la primera página.
    */
+  @ApiPropertyOptional({
+    description: 'Número de página solicitada.',
+    example: 1,
+    default: 1,
+    minimum: 1,
+    type: Number,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt({
@@ -107,6 +141,14 @@ export class FindCommissionCalculationsDto {
    *
    * El límite máximo evita consultas excesivamente grandes.
    */
+  @ApiPropertyOptional({
+    description: 'Cantidad máxima de liquidaciones devueltas por página.',
+    example: 10,
+    default: 10,
+    minimum: 1,
+    maximum: 100,
+    type: Number,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt({
@@ -123,6 +165,12 @@ export class FindCommissionCalculationsDto {
   /**
    * Campo utilizado para ordenar los resultados.
    */
+  @ApiPropertyOptional({
+    description: 'Campo utilizado para ordenar el historial de liquidaciones.',
+    enum: CommissionCalculationSortBy,
+    example: CommissionCalculationSortBy.CALCULATION_DATE_TIME,
+    default: CommissionCalculationSortBy.CALCULATION_DATE_TIME,
+  })
   @IsOptional()
   @IsEnum(CommissionCalculationSortBy, {
     message:
@@ -137,8 +185,14 @@ export class FindCommissionCalculationsDto {
    * El valor se transforma a mayúsculas para aceptar
    * tanto "asc" como "ASC".
    */
+  @ApiPropertyOptional({
+    description: 'Dirección utilizada para ordenar los resultados.',
+    enum: SortOrder,
+    example: SortOrder.DESC,
+    default: SortOrder.DESC,
+  })
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: TransformFnParams): unknown =>
     typeof value === 'string' ? value.toUpperCase() : value,
   )
   @IsEnum(SortOrder, {
