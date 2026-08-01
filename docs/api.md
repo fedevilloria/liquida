@@ -7,6 +7,22 @@
 
 http://localhost:3000
 
+### Documentación interactiva
+
+Con la aplicación iniciada y `SWAGGER_ENABLED=true`, la documentación OpenAPI se encuentra disponible en:
+
+```text
+http://localhost:3000/api/docs
+```
+
+Swagger permite consultar los endpoints, parámetros, cuerpos de solicitud, respuestas y códigos HTTP documentados, además de ejecutar solicitudes de prueba desde el navegador.
+
+En los entornos donde no se desee publicar la documentación, puede deshabilitarse mediante:
+
+```env
+SWAGGER_ENABLED=false
+```
+
 
 ### Formato
 

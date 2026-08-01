@@ -305,3 +305,15 @@ Las operaciones simuladas incluyen:
 - `getRawOne()`.
 
 Las pruebas verifican que el servicio invoque correctamente estas operaciones, pero no ejecutan SQL real.
+
+---
+
+## 11. Configuración del esquema por entorno
+
+La conexión de TypeORM se construye a partir de variables de entorno validadas al iniciar la aplicación.
+
+Durante el desarrollo, la sincronización automática puede mantenerse habilitada para facilitar la evolución inicial del modelo. En producción, `synchronize` se desactiva automáticamente para impedir que TypeORM modifique el esquema sin un procedimiento controlado.
+
+Esta decisión no modifica las tablas actuales, pero protege la integridad del modelo desplegado. Como evolución futura, los cambios estructurales deberán administrarse mediante migraciones versionadas.
+
+Las credenciales reales de PostgreSQL se conservan en archivos `.env` excluidos del repositorio. El archivo `.env.example` documenta únicamente los nombres y valores de referencia necesarios para configurar una instalación.

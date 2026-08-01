@@ -435,3 +435,80 @@ query
   .skip(...)
   .take(...)
   .getManyAndCount();
+```
+
+---
+
+## DEC-024 — Documentación interactiva mediante OpenAPI
+
+**Estado:** Aceptada
+
+### Decisión
+
+Documentar la API mediante Swagger y OpenAPI 3, incluyendo operaciones, parámetros, DTOs, ejemplos de solicitud y respuesta, y códigos HTTP.
+
+La interfaz estará disponible en `/api/docs` cuando `SWAGGER_ENABLED=true`.
+
+### Motivo
+
+- Mantener un contrato visible y actualizado para el frontend.
+- Facilitar las pruebas manuales de los endpoints.
+- Reducir ambigüedades sobre parámetros, validaciones y respuestas.
+- Permitir deshabilitar la documentación en entornos donde no deba exponerse.
+
+---
+
+## DEC-025 — Validación centralizada de variables de entorno
+
+**Estado:** Aceptada
+
+### Decisión
+
+Validar y tipar la configuración al iniciar la aplicación. El repositorio incluirá `.env.example` como referencia, mientras que los archivos `.env` con valores reales permanecerán excluidos del control de versiones.
+
+### Motivo
+
+- Detectar configuraciones incompletas antes de aceptar solicitudes.
+- Evitar conversiones dispersas de cadenas a números o booleanos.
+- Documentar las variables requeridas sin publicar credenciales.
+- Mantener un comportamiento consistente entre desarrollo, pruebas y producción.
+
+---
+
+## DEC-026 — Configuración dependiente del entorno
+
+**Estado:** Aceptada
+
+### Decisión
+
+- Obtener el puerto HTTP desde `PORT`.
+- Obtener el origen permitido por CORS desde `FRONTEND_URL`.
+- Habilitar Swagger mediante `SWAGGER_ENABLED`.
+- Mantener `synchronize` de TypeORM desactivado en producción.
+
+### Motivo
+
+- Evitar valores de infraestructura fijados en el código.
+- Permitir que Angular consuma la API desde un origen configurable.
+- Reducir el riesgo de cambios automáticos del esquema en producción.
+- Adaptar las capacidades de diagnóstico y documentación a cada entorno.
+
+---
+
+## DEC-027 — Pruebas HTTP End-to-End
+
+**Estado:** Aceptada
+
+### Decisión
+
+Complementar las pruebas unitarias con pruebas E2E ejecutadas mediante Jest y Supertest sobre una instancia HTTP de NestJS.
+
+### Motivo
+
+- Verificar rutas, serialización, validaciones globales y códigos HTTP.
+- Detectar diferencias entre el comportamiento interno de los servicios y el contrato expuesto.
+- Probar errores de validación, como páginas inválidas o propiedades desconocidas.
+
+### Resultado
+
+La versión actual cuenta con 6 pruebas E2E aprobadas y mantiene separadas las responsabilidades de las pruebas unitarias y HTTP.

@@ -33,6 +33,9 @@ La aplicación está dividida en:
 - TypeORM
 - class-validator
 - class-transformer
+- Swagger / OpenAPI 3
+- Jest
+- Supertest
 
 ### Base de datos
 
@@ -102,7 +105,9 @@ Contiene las configuraciones externas de la aplicación.
 
 Actualmente incluye:
 
+- Validación y tipado de variables de entorno.
 - Configuración de conexión a PostgreSQL.
+- Comportamiento específico según el entorno de ejecución.
 
 ---
 
@@ -148,6 +153,24 @@ La conexión con PostgreSQL se construye de forma asíncrona utilizando:
 Esto garantiza que las variables del archivo '.env' estén cargadas antes de intentar conectarse a la base de datos.
 
 Las credenciales no se almacenan dentro del código fuente.
+
+La aplicación valida al iniciar las variables requeridas, entre ellas:
+
+- `NODE_ENV`.
+- `PORT`.
+- `DB_HOST`.
+- `DB_PORT`.
+- `DB_USERNAME`.
+- `DB_PASSWORD`.
+- `DB_NAME`.
+- `FRONTEND_URL`.
+- `SWAGGER_ENABLED`.
+
+El archivo `.env.example` documenta la estructura esperada sin contener credenciales reales.
+
+La sincronización automática del esquema de TypeORM se habilita únicamente fuera de producción. En `production`, `synchronize` permanece desactivado para evitar alteraciones automáticas del esquema.
+
+El origen permitido por CORS se obtiene de `FRONTEND_URL`, lo que permite conectar el frontend sin fijar su dirección dentro del código.
 
 ---
 
@@ -425,3 +448,56 @@ Ejemplo:
 const inactiveGroup = createGroup({
   active: false,
 });
+```
+
+---
+
+## 14. Documentación OpenAPI
+
+La API se documenta mediante Swagger y OpenAPI 3. Los controladores y DTOs declaran:
+
+- Resumen y descripción de cada operación.
+- Parámetros de ruta y de consulta.
+- Cuerpos de solicitud.
+- Esquemas de respuesta.
+- Ejemplos representativos.
+- Códigos HTTP exitosos y de error.
+
+Cuando `SWAGGER_ENABLED=true`, la interfaz se publica en `/api/docs`. La documentación puede deshabilitarse por entorno sin modificar el código fuente.
+
+---
+
+## 15. Pruebas HTTP End-to-End
+
+Las pruebas E2E levantan una aplicación NestJS aislada y realizan solicitudes HTTP mediante Supertest.
+
+Estas pruebas verifican el contrato externo de la API, incluyendo:
+
+- Consulta de grupos.
+- Consulta de bancos.
+- Historial paginado de liquidaciones.
+- Estadísticas del dashboard.
+- Rechazo de parámetros de paginación inválidos.
+- Rechazo de campos desconocidos.
+
+Los servicios se reemplazan mediante mocks para mantener las pruebas rápidas y deterministas. El servidor HTTP se tipa explícitamente para conservar compatibilidad con las reglas estrictas de ESLint y TypeScript.
+
+---
+
+## 16. Verificación de calidad
+
+Antes de cerrar una versión del backend se ejecutan los siguientes controles:
+
+```bash
+npm run lint
+npm run build
+npm test
+npm run test:e2e
+```
+
+El cierre actual fue verificado con:
+
+- ESLint sin errores ni advertencias.
+- Compilación correcta.
+- 6 suites y 73 pruebas unitarias aprobadas.
+- 1 suite y 6 pruebas E2E aprobadas.

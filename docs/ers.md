@@ -19,13 +19,14 @@ La primera versión de Liquida permitirá:
 - Registrar liquidaciones individuales.
 - Calcular automáticamente las comisiones.
 - Conservar un historial de liquidaciones.
+- Consultar el historial con filtros, paginación y ordenamiento.
+- Consultar estadísticas y rankings mediante un dashboard.
 - Mantener los registros históricos aunque un grupo o banco deje de estar activo.
 
 En versiones posteriores se podrá incorporar:
 
 - Registro de múltiples liquidaciones en una misma operación.
 - Exportación de información a Excel o PDF.
-- Estadísticas y paneles de control.
 - Gestión de usuarios y roles.
 - Auditoría de operaciones.
 
@@ -345,6 +346,24 @@ La paginación deberá limitar la cantidad de registros recuperados y transferid
 ### RNF09 — Consistencia de las respuestas
 
 La transformación de entidades persistentes a DTOs de respuesta deberá centralizarse para evitar duplicación e inconsistencias entre endpoints.
+
+### RNF10 — Documentación de la API
+
+La API deberá publicar documentación OpenAPI interactiva con sus endpoints, parámetros, DTOs, ejemplos y respuestas HTTP.
+
+La publicación de Swagger deberá poder habilitarse o deshabilitarse mediante configuración de entorno.
+
+### RNF11 — Configuración por entorno
+
+La aplicación deberá validar las variables de entorno requeridas antes de iniciar.
+
+El puerto HTTP, el origen permitido por CORS y la disponibilidad de Swagger deberán configurarse sin modificar el código fuente.
+
+La sincronización automática del esquema de TypeORM deberá permanecer desactivada en producción.
+
+### RNF12 — Calidad verificable
+
+El backend deberá superar los controles de lint, compilación, pruebas unitarias y pruebas HTTP End-to-End antes de cerrar una versión.
 
 ---
 

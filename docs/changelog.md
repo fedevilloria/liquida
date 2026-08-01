@@ -123,3 +123,41 @@
 - Compilación correcta mediante `npm run build`.
 - Registro y persistencia real de liquidaciones mediante Postman.
 - Cálculos correctos de comisión total, bancaria, del cliente y propia.
+
+## v0.5.0
+
+### Agregado
+
+- Documentación interactiva de la API mediante Swagger y OpenAPI 3.
+- Descripciones, parámetros, ejemplos, esquemas y respuestas HTTP para grupos, bancos y liquidaciones.
+- Variable `SWAGGER_ENABLED` para habilitar o deshabilitar Swagger según el entorno.
+- Variable `FRONTEND_URL` para configurar el origen permitido por CORS.
+- Variable `PORT` para configurar el puerto HTTP.
+- Validación y tipado centralizados de las variables de entorno.
+- Archivo `.env.example` sin credenciales reales.
+- Pruebas HTTP End-to-End mediante Jest y Supertest.
+- README específico de Liquida con instalación, ejecución, pruebas y referencias a la documentación técnica.
+
+### Mejorado
+
+- Configuración de PostgreSQL centralizada y dependiente del entorno.
+- Desactivación automática de `synchronize` cuando `NODE_ENV=production`.
+- Tipado estricto de transformaciones de DTO mediante `TransformFnParams`.
+- Tipado del servidor HTTP utilizado por Supertest.
+- Precisión de las expectativas de búsqueda insensible a mayúsculas mediante `ILike()`.
+- Limpieza de mocks asincrónicos que no requerían `async`.
+- Documentación técnica alineada con el estado final del backend.
+
+### Corregido
+
+- Advertencias y errores detectados por ESLint en DTOs y archivos de prueba.
+- Espera explícita de solicitudes HTTP en las pruebas E2E.
+- Declaración duplicada de la aplicación NestJS en la suite E2E.
+
+### Verificado
+
+- `npm run lint` sin errores ni advertencias.
+- Compilación correcta mediante `npm run build`.
+- 6 suites y 73 pruebas unitarias aprobadas.
+- 1 suite y 6 pruebas E2E aprobadas.
+- Swagger accesible en `/api/docs` cuando se encuentra habilitado.
