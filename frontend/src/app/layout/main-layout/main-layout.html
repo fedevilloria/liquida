@@ -1,0 +1,94 @@
+<div class="app-layout">
+  <aside
+    class="sidebar"
+    [class.sidebar--open]="isSidebarOpen()"
+  >
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">L</div>
+
+      <div>
+        <p class="sidebar__name">Liquida</p>
+        <p class="sidebar__description">Gestión de comisiones</p>
+      </div>
+    </div>
+
+    <nav class="sidebar__navigation" aria-label="Navegación principal">
+      <a
+        routerLink="/"
+        routerLinkActive="navigation-link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="navigation-link"
+        (click)="closeSidebar()"
+      >
+        Dashboard
+      </a>
+
+      <a
+        routerLink="/liquidaciones/nueva"
+        routerLinkActive="navigation-link--active"
+        class="navigation-link"
+        (click)="closeSidebar()"
+      >
+        Nueva liquidación
+      </a>
+
+      <a
+        routerLink="/liquidaciones/historial"
+        routerLinkActive="navigation-link--active"
+        class="navigation-link"
+        (click)="closeSidebar()"
+      >
+        Historial
+      </a>
+
+      <a
+        routerLink="/grupos"
+        routerLinkActive="navigation-link--active"
+        class="navigation-link"
+        (click)="closeSidebar()"
+      >
+        Grupos
+      </a>
+
+      <a
+        routerLink="/bancos"
+        routerLinkActive="navigation-link--active"
+        class="navigation-link"
+        (click)="closeSidebar()"
+      >
+        Bancos
+      </a>
+    </nav>
+  </aside>
+
+  @if (isSidebarOpen()) {
+    <button
+      type="button"
+      class="sidebar-backdrop"
+      aria-label="Cerrar menú"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <div class="page-container">
+    <header class="header">
+      <button
+        type="button"
+        class="menu-button"
+        aria-label="Abrir o cerrar menú"
+        [attr.aria-expanded]="isSidebarOpen()"
+        (click)="toggleSidebar()"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <p class="header__title">Sistema de liquidaciones</p>
+    </header>
+
+    <main class="main-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
