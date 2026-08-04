@@ -1,1 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales de la aplicación Liquida. */
+
+/* Hace que el ancho y alto de los elementos incluyan padding y bordes. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Elimina los márgenes predeterminados y establece la tipografía general. */
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  color: #273247;
+  background-color: #f4f6f8;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.5;
+}
+
+/* Los controles de formulario utilizarán la misma tipografía que la aplicación. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Mejora la accesibilidad al navegar utilizando el teclado. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgb(32 179 134 / 30%);
+  outline-offset: 2px;
+}

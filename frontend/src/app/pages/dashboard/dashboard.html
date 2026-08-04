@@ -1,1 +1,176 @@
-<p>dashboard works!</p>
+<section class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <p class="dashboard__eyebrow">Resumen general</p>
+      <h1 class="dashboard__title">Dashboard</h1>
+      <p class="dashboard__description">
+        Consultá los principales indicadores de las liquidaciones registradas.
+      </p>
+    </div>
+  </header>
+
+  <form
+    class="filters"
+    [formGroup]="filtersForm"
+    (ngSubmit)="applyFilters()"
+  >
+    <div class="filters__field">
+      <label for="from">Desde</label>
+      <input
+        id="from"
+        type="date"
+        formControlName="from"
+      />
+    </div>
+
+    <div class="filters__field">
+      <label for="to">Hasta</label>
+      <input
+        id="to"
+        type="date"
+        formControlName="to"
+      />
+    </div>
+
+    <div class="filters__actions">
+      <button
+        type="submit"
+        class="button button--primary"
+        [disabled]="isLoading()"
+      >
+        Aplicar filtros
+      </button>
+
+      <button
+        type="button"
+        class="button button--secondary"
+        [disabled]="isLoading()"
+        (click)="clearFilters()"
+      >
+        Limpiar
+      </button>
+    </div>
+  </form>
+
+  @if (isLoading()) {
+    <div class="status-panel" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <p>Cargando información del Dashboard...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="status-panel status-panel--error" role="alert">
+      <h2>No pudimos cargar la información</h2>
+      <p>{{ errorMessage() }}</p>
+
+      <button
+        type="button"
+        class="button button--primary"
+        (click)="retry()"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else if (dashboardData(); as dashboard) {
+    <div class="dashboard__period">
+      @if (dashboard.from || dashboard.to) {
+        <p>
+          Período consultado:
+          <strong>{{ dashboard.from || 'Inicio' }}</strong>
+          al
+          <strong>{{ dashboard.to || 'Actualidad' }}</strong>
+        </p>
+      } @else {
+        <p>Mostrando todas las liquidaciones registradas.</p>
+      }
+    </div>
+
+    @if (dashboard.calculationCount === 0) {
+      <div class="status-panel">
+        <h2>No hay liquidaciones</h2>
+        <p>
+          No se encontraron liquidaciones para el período seleccionado.
+        </p>
+      </div>
+    } @else {
+      <div class="metrics-grid">
+        <article class="metric-card metric-card--featured">
+          <p class="metric-card__label">Recaudación total</p>
+          <p class="metric-card__value">
+            {{ dashboard.totalCollectionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-card__label">Comisión total</p>
+          <p class="metric-card__value">
+            {{ dashboard.totalCommissionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-card__label">Comisión bancaria</p>
+          <p class="metric-card__value">
+            {{ dashboard.bankCommissionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-card__label">Comisión de clientes</p>
+          <p class="metric-card__value">
+            {{ dashboard.clientCommissionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+
+        <article class="metric-card metric-card--own">
+          <p class="metric-card__label">Comisión propia</p>
+          <p class="metric-card__value">
+            {{ dashboard.ownCommissionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+
+        <article class="metric-card">
+          <p class="metric-card__label">Promedio por liquidación</p>
+          <p class="metric-card__value">
+            {{ dashboard.averageCollectionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+          </p>
+        </article>
+      </div>
+
+      <div class="summary-grid">
+        <article class="summary-card">
+          <p class="summary-card__label">Liquidaciones registradas</p>
+          <p class="summary-card__value">
+            {{ dashboard.calculationCount }}
+          </p>
+        </article>
+
+        <article class="summary-card">
+          <p class="summary-card__label">Grupo con mayor recaudación</p>
+
+          @if (dashboard.topGroup; as group) {
+            <p class="summary-card__name">{{ group.name }}</p>
+            <p class="summary-card__detail">
+              Recaudación: {{ group.totalCollectionAmount | currency: 'ARS' : 'symbol' : '1.2-2' }}
+            </p>
+          } @else {
+            <p class="summary-card__empty">Sin información disponible</p>
+          }
+        </article>
+
+        <article class="summary-card">
+          <p class="summary-card__label">Banco con más liquidaciones</p>
+
+          @if (dashboard.topBank; as bank) {
+            <p class="summary-card__name">{{ bank.name }}</p>
+            <p class="summary-card__detail">
+              {{ bank.calculationCount }}
+              liquidaciones
+            </p>
+          } @else {
+            <p class="summary-card__empty">Sin información disponible</p>
+          }
+        </article>
+      </div>
+    }
+  }
+</section>

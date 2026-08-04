@@ -1,0 +1,308 @@
+/* Contenedor principal del Dashboard. */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Encabezado de la página. */
+.dashboard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dashboard__eyebrow {
+  margin: 0 0 4px;
+  color: #15946f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard__title {
+  margin: 0;
+  color: #1d2939;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  line-height: 1.2;
+}
+
+.dashboard__description {
+  max-width: 640px;
+  margin: 8px 0 0;
+  color: #667085;
+}
+
+/* Formulario de filtros. */
+.filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
+}
+
+.filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filters__field label {
+  color: #344054;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.filters__field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  color: #344054;
+  background-color: #ffffff;
+}
+
+.filters__field input:hover {
+  border-color: #98a2b3;
+}
+
+.filters__field input:focus {
+  border-color: #20b386;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(32 179 134 / 15%);
+}
+
+.filters__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* Botones reutilizados dentro del Dashboard. */
+.button {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.button--primary {
+  color: #ffffff;
+  background-color: #15946f;
+}
+
+.button--primary:not(:disabled):hover {
+  background-color: #117b5d;
+}
+
+.button--secondary {
+  border-color: #d0d5dd;
+  color: #344054;
+  background-color: #ffffff;
+}
+
+.button--secondary:not(:disabled):hover {
+  background-color: #f9fafb;
+}
+
+/* Período actualmente consultado. */
+.dashboard__period {
+  padding: 12px 16px;
+  border-left: 4px solid #20b386;
+  border-radius: 0 8px 8px 0;
+  color: #475467;
+  background-color: #ecfdf7;
+}
+
+.dashboard__period p {
+  margin: 0;
+}
+
+/* Tarjetas de indicadores monetarios. */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.metric-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
+}
+
+.metric-card--featured {
+  border-color: #b7eadb;
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf7 100%);
+}
+
+.metric-card--own {
+  border-color: #9edecb;
+  background-color: #f0fdf9;
+}
+
+.metric-card__label {
+  margin: 0;
+  color: #667085;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.metric-card__value {
+  margin: 10px 0 0;
+  overflow-wrap: anywhere;
+  color: #1d2939;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.metric-card--featured .metric-card__value,
+.metric-card--own .metric-card__value {
+  color: #117b5d;
+}
+
+/* Tarjetas con información complementaria. */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.summary-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgb(16 24 40 / 4%);
+}
+
+.summary-card__label {
+  margin: 0;
+  color: #667085;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.summary-card__value,
+.summary-card__name {
+  margin: 10px 0 0;
+  color: #1d2939;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.summary-card__detail,
+.summary-card__empty {
+  margin: 6px 0 0;
+  color: #667085;
+}
+
+/* Estados de carga, error o ausencia de datos. */
+.status-panel {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 20px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  text-align: center;
+  background-color: #ffffff;
+}
+
+.status-panel h2,
+.status-panel p {
+  margin: 0;
+}
+
+.status-panel--error {
+  border-color: #fecdca;
+  color: #b42318;
+  background-color: #fffbfa;
+}
+
+/* Animación utilizada durante la carga. */
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #d1f4e9;
+  border-top-color: #15946f;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Adaptación para tablets. */
+@media (min-width: 640px) {
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters__actions {
+    grid-column: 1 / -1;
+  }
+
+  .metrics-grid,
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Adaptación para computadoras. */
+@media (min-width: 1100px) {
+  .filters {
+    grid-template-columns:
+      minmax(180px, 240px)
+      minmax(180px, 240px)
+      auto;
+    align-items: end;
+  }
+
+  .filters__actions {
+    grid-column: auto;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

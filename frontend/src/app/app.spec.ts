@@ -14,10 +14,15 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should render the application router', async () => {
     const fixture = TestBed.createComponent(App);
+
+    fixture.detectChanges();
     await fixture.whenStable();
+
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+
+    // Verifica que exista el punto donde Angular muestra las páginas.
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 });
