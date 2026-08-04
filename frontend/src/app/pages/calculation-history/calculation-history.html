@@ -1,1 +1,316 @@
-<p>calculation-history works!</p>
+<section class="history-page">
+  <header class="page-header">
+    <div>
+      <p class="page-header__eyebrow">Liquidaciones</p>
+      <h1>Historial de liquidaciones</h1>
+      <p>
+        Consultá las liquidaciones registradas y sus importes calculados.
+      </p>
+    </div>
+  </header>
+
+  <section class="filters-card" aria-labelledby="filters-title">
+    <div class="filters-card__header">
+        <div>
+        <h2 id="filters-title">Filtrar liquidaciones</h2>
+
+        <p>
+            Buscá operaciones por grupo, banco o período.
+        </p>
+        </div>
+    </div>
+
+    @if (catalogsError(); as error) {
+        <div class="filters-message filters-message--error" role="alert">
+        <p>{{ error }}</p>
+        </div>
+    }
+
+    <form
+        class="filters-form"
+        (ngSubmit)="applyFilters()"
+    >
+        <div class="filters-grid">
+        <div class="filter-field">
+            <label for="history-group">Grupo</label>
+
+            <select
+            id="history-group"
+            name="groupId"
+            [(ngModel)]="selectedGroupId"
+            [disabled]="areCatalogsLoading()"
+            >
+            <option [ngValue]="null">
+                Todos los grupos
+            </option>
+
+            @for (group of groups(); track group.id) {
+                <option [ngValue]="group.id">
+                {{ group.name }}
+                </option>
+            }
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="history-bank">Banco</label>
+
+            <select
+            id="history-bank"
+            name="bankId"
+            [(ngModel)]="selectedBankId"
+            [disabled]="areCatalogsLoading()"
+            >
+            <option [ngValue]="null">
+                Todos los bancos
+            </option>
+
+            @for (bank of banks(); track bank.id) {
+                <option [ngValue]="bank.id">
+                {{ bank.name }}
+                </option>
+            }
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="history-from">Desde</label>
+
+            <input
+            id="history-from"
+            name="fromDate"
+            type="date"
+            [(ngModel)]="fromDate"
+            [max]="toDate || null"
+            />
+        </div>
+
+        <div class="filter-field">
+            <label for="history-to">Hasta</label>
+
+            <input
+            id="history-to"
+            name="toDate"
+            type="date"
+            [(ngModel)]="toDate"
+            [min]="fromDate || null"
+            />
+        </div>
+        </div>
+
+        <div class="filters-actions">
+        <button
+            class="filter-button filter-button--secondary"
+            type="button"
+            [disabled]="!hasActiveFilters() || isLoading()"
+            (click)="clearFilters()"
+        >
+            Limpiar filtros
+        </button>
+
+        <button
+            class="filter-button filter-button--primary"
+            type="submit"
+            [disabled]="isLoading()"
+        >
+            @if (isLoading()) {
+            Buscando...
+            } @else {
+            Aplicar filtros
+            }
+        </button>
+        </div>
+    </form>
+    </section>
+
+  @if (isLoading()) {
+    <section class="message" role="status">
+      <p>Cargando historial de liquidaciones...</p>
+    </section>
+  } @else if (loadError(); as error) {
+    <section class="message message--error" role="alert">
+      <div>
+        <p class="message__title">No pudimos cargar el historial</p>
+        <p>{{ error }}</p>
+      </div>
+
+      <button type="button" (click)="loadCalculations()">
+        Reintentar
+      </button>
+    </section>
+  } @else if (calculations().length === 0) {
+    <section class="message">
+      <div>
+        <p class="message__title">Todavía no hay liquidaciones</p>
+        <p>
+          Las liquidaciones registradas aparecerán en esta pantalla.
+        </p>
+      </div>
+    </section>
+  } @else {
+    <section class="history-results">
+      <div class="results-summary">
+        @if (pagination(); as paginationData) {
+          <p>
+            Se encontraron
+            <strong>{{ paginationData.totalItems }}</strong>
+            liquidaciones.
+          </p>
+        }
+      </div>
+
+      <div class="table-container">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th scope="col">Fecha de corte</th>
+              <th scope="col">Grupo</th>
+              <th scope="col">Banco</th>
+              <th scope="col">Recaudación</th>
+              <th scope="col">Comisión total</th>
+              <th scope="col">Comisión bancaria</th>
+              <th scope="col">Comisión cliente</th>
+              <th scope="col">Comisión propia</th>
+              <th scope="col">Observaciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (calculation of calculations(); track calculation.id) {
+              <tr>
+                <td>
+                  <span class="date-value">
+                    {{
+                      calculation.calculationDateTime
+                        | date: 'dd/MM/yyyy'
+                    }}
+                  </span>
+
+                  <span class="time-value">
+                    {{
+                      calculation.calculationDateTime
+                        | date: 'HH:mm'
+                    }}
+                  </span>
+                </td>
+
+                <td>{{ calculation.groupName }}</td>
+
+                <td>{{ calculation.bankName }}</td>
+
+                <td class="numeric-value">
+                  $
+                  {{
+                    calculation.collectionAmount
+                      | number: '1.2-2'
+                  }}
+                </td>
+
+                <td class="numeric-value">
+                  <span>
+                    $
+                    {{
+                      calculation.totalCommissionAmount
+                        | number: '1.2-2'
+                    }}
+                  </span>
+
+                  <small>
+                    {{
+                      calculation.totalCommissionPercentage
+                        | number: '1.0-2'
+                    }} %
+                  </small>
+                </td>
+
+                <td class="numeric-value">
+                  <span>
+                    $
+                    {{
+                      calculation.bankCommissionAmount
+                        | number: '1.2-2'
+                    }}
+                  </span>
+
+                  <small>
+                    {{
+                      calculation.bankCommissionPercentage
+                        | number: '1.0-2'
+                    }} %
+                  </small>
+                </td>
+
+                <td class="numeric-value">
+                  <span>
+                    $
+                    {{
+                      (calculation.clientCommissionAmount ?? 0)
+                        | number: '1.2-2'
+                    }}
+                  </span>
+
+                  <small>
+                    {{
+                      (calculation.clientCommissionPercentage ?? 0)
+                        | number: '1.0-2'
+                    }} %
+                  </small>
+                </td>
+
+                <td class="numeric-value numeric-value--highlight">
+                  <span>
+                    $
+                    {{
+                      calculation.ownCommissionAmount
+                        | number: '1.2-2'
+                    }}
+                  </span>
+
+                  <small>
+                    {{
+                      calculation.ownCommissionPercentage
+                        | number: '1.0-2'
+                    }} %
+                  </small>
+                </td>
+
+                <td class="notes-value">
+                  {{ calculation.notes || 'Sin observaciones' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (pagination(); as paginationData) {
+        <nav class="pagination" aria-label="Paginación del historial">
+          <button
+            type="button"
+            [disabled]="
+              !paginationData.hasPreviousPage || isLoading()
+            "
+            (click)="goToPreviousPage()"
+          >
+            Anterior
+          </button>
+
+          <span>
+            Página {{ paginationData.page }} de
+            {{ paginationData.totalPages }}
+          </span>
+
+          <button
+            type="button"
+            [disabled]="
+              !paginationData.hasNextPage || isLoading()
+            "
+            (click)="goToNextPage()"
+          >
+            Siguiente
+          </button>
+        </nav>
+      }
+    </section>
+  }
+</section>

@@ -43,3 +43,36 @@ export interface CommissionCalculation {
   notes: string | null;
   createdAt: string;
 }
+
+/**
+ * Filtros que pueden enviarse al consultar el historial.
+ */
+export interface CommissionCalculationFilters {
+  groupId?: number;
+  bankId?: number;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Información utilizada para navegar entre las páginas
+ * del historial de liquidaciones.
+ */
+export interface CommissionCalculationPagination {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+/**
+ * Respuesta paginada devuelta por el historial.
+ */
+export interface CommissionCalculationsResponse {
+  data: CommissionCalculation[];
+  pagination: CommissionCalculationPagination;
+}

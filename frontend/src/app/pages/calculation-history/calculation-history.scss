@@ -1,0 +1,505 @@
+// Contenedor principal de la pantalla.
+.history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+// Encabezado de la página.
+.page-header {
+  h1 {
+    margin: 0;
+    color: #172033;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+    color: #657086;
+    line-height: 1.5;
+  }
+}
+
+.page-header__eyebrow {
+  color: #15946f !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// Mensajes de carga, error o historial vacío.
+.message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #dce2eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  color: #4f5b70;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    flex-shrink: 0;
+    padding: 0.65rem 1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background-color: #3857d6;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #2d49bd;
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgb(56 87 214 / 25%);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.message--error {
+  border-color: #f2b8b5;
+  background-color: #fff5f5;
+  color: #9d2525;
+}
+
+.message__title {
+  margin-bottom: 0.25rem !important;
+  font-weight: 700;
+}
+
+// Tarjeta que contiene los filtros del historial.
+.filters-card {
+  padding: 1.5rem;
+  border: 1px solid #dce2eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgb(23 32 51 / 6%);
+}
+
+.filters-card__header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e8ecf2;
+
+  h2 {
+    margin: 0;
+    color: #273247;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #657086;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+// Mensaje mostrado si fallara la carga de grupos o bancos.
+.filters-message {
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.filters-message--error {
+  border-color: #f2b8b5;
+  background-color: #fff5f5;
+  color: #9d2525;
+}
+
+// Organización de los cuatro campos de búsqueda.
+.filters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  label {
+    margin-bottom: 0.5rem;
+    color: #344054;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  select,
+  input {
+    width: 100%;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #cfd5df;
+    border-radius: 0.5rem;
+    outline: none;
+    background-color: #ffffff;
+    color: #273247;
+    font: inherit;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  select:focus,
+  input:focus {
+    border-color: #15946f;
+    box-shadow: 0 0 0 3px rgb(21 148 111 / 13%);
+  }
+
+  select:disabled,
+  input:disabled {
+    background-color: #f1f3f6;
+    color: #7d8799;
+    cursor: not-allowed;
+  }
+}
+
+// Botones para aplicar o restablecer los filtros.
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.filter-button {
+  min-height: 2.625rem;
+  padding: 0.625rem 1.125rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 100ms ease;
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgb(21 148 111 / 18%);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.filter-button--primary {
+  border-color: #15946f;
+  background-color: #15946f;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    border-color: #117b5d;
+    background-color: #117b5d;
+  }
+}
+
+.filter-button--secondary {
+  border-color: #cfd5df;
+  background-color: #ffffff;
+  color: #344054;
+
+  &:hover:not(:disabled) {
+    border-color: #aeb6c3;
+    background-color: #f7f8fa;
+  }
+}
+
+// Contenedor de los resultados.
+.history-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.results-summary {
+  color: #657086;
+
+  p {
+    margin: 0;
+  }
+
+  strong {
+    color: #172033;
+  }
+}
+
+// Permite desplazar horizontalmente la tabla en pantallas pequeñas.
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #dce2eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgb(23 32 51 / 6%);
+}
+
+// Tabla principal del historial.
+.history-table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e8ecf2;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background-color: #f5f7fb;
+    color: #4f5b70;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #263249;
+    font-size: 0.9rem;
+  }
+
+  tbody tr {
+    transition: background-color 150ms ease;
+  }
+
+  tbody tr:hover {
+    background-color: #f8f9fc;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+// Fecha y hora en líneas separadas.
+.date-value,
+.time-value {
+  display: block;
+  white-space: nowrap;
+}
+
+.date-value {
+  font-weight: 600;
+}
+
+.time-value {
+  margin-top: 0.2rem;
+  color: #7a8497;
+  font-size: 0.8rem;
+}
+
+// Importes y porcentajes.
+.numeric-value {
+  white-space: nowrap;
+
+  span,
+  small {
+    display: block;
+  }
+
+  span {
+    font-weight: 600;
+  }
+
+  small {
+    margin-top: 0.2rem;
+    color: #7a8497;
+    font-size: 0.78rem;
+  }
+}
+
+// Resalta la comisión que le corresponde a la organización.
+.numeric-value--highlight {
+  color: #157347 !important;
+
+  small {
+    color: #388c66;
+    font-weight: 600;
+  }
+}
+
+// Las observaciones pueden ocupar más de una línea.
+.notes-value {
+  min-width: 220px;
+  max-width: 320px;
+  color: #5e697d !important;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+// Navegación entre páginas.
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+
+  span {
+    color: #4f5b70;
+    font-size: 0.9rem;
+  }
+
+  button {
+    min-width: 6.5rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid #cbd3df;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+    color: #263249;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease,
+      color 150ms ease;
+
+    &:hover:not(:disabled) {
+      border-color: #3857d6;
+      background-color: #f2f5ff;
+      color: #3857d6;
+    }
+
+    &:focus-visible {
+      outline: 3px solid rgb(56 87 214 / 25%);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      background-color: #f1f3f6;
+      color: #a1a9b7;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Ajustes para tablets y celulares.
+@media (max-width: 768px) {
+  .history-page {
+    gap: 1.25rem;
+  }
+
+  .message {
+    align-items: flex-start;
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .table-container {
+    // Sugiere visualmente que la tabla puede desplazarse.
+    background:
+      linear-gradient(to right, #ffffff 30%, rgb(255 255 255 / 0%)),
+      linear-gradient(to left, #ffffff 30%, rgb(255 255 255 / 0%));
+  }
+
+  .pagination {
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    button {
+      min-width: auto;
+      padding-inline: 0.8rem;
+    }
+
+    span {
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+
+  .filters-card {
+    padding: 1.25rem;
+    }
+
+    .filters-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filters-actions {
+    justify-content: stretch;
+
+    .filter-button {
+        flex: 1;
+    }
+    }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+
+    span {
+      order: -1;
+      width: 100%;
+    }
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .filters-card {
+    padding: 1rem;
+    }
+
+    .filters-grid {
+    grid-template-columns: 1fr;
+    }
+
+    .filters-actions {
+    flex-direction: column-reverse;
+
+    .filter-button {
+        width: 100%;
+    }
+    }
+}
