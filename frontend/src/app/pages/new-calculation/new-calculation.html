@@ -1,1 +1,338 @@
-<p>new-calculation works!</p>
+<section class="new-calculation-page">
+  <!-- Encabezado de la pantalla. -->
+  <header id="page-top" class="page-header">
+    <div>
+      <p class="page-header__eyebrow">Liquidaciones</p>
+      <h1>Nueva liquidación</h1>
+      <p class="page-header__description">
+        Registrá la recaudación y las comisiones correspondientes.
+      </p>
+    </div>
+  </header>
+
+  <!-- Error producido durante la carga de grupos y bancos. -->
+  @if (catalogError()) {
+    <div class="message message--error" role="alert">
+      <p>{{ catalogError() }}</p>
+
+      <button
+        type="button"
+        class="button button--secondary"
+        (click)="loadCatalogs()"
+      >
+        Volver a intentar
+      </button>
+    </div>
+  }
+
+  <!-- Confirmación mostrada después de registrar la liquidación. -->
+    @if (registeredCalculation(); as calculation) {
+    <div
+        id="form-feedback"
+        class="message message--success"
+        role="status"
+        tabindex="-1"
+    >
+        <div>
+        <p class="message__title">Liquidación registrada correctamente</p>
+
+        <p>
+            Se registró la liquidación N.º {{ calculation.id }} para
+            {{ calculation.groupName }}.
+        </p>
+        </div>
+    </div>
+    }
+
+  <!-- Error producido al intentar registrar la liquidación. -->
+  @if (submitError()) {
+    <div
+        id="form-feedback"
+        class="message message--error"
+        role="alert"
+        tabindex="-1"
+    >
+        <p>{{ submitError() }}</p>
+    </div>
+    }
+
+  <form
+    class="calculation-form"
+    [formGroup]="calculationForm"
+    (ngSubmit)="submitCalculation()"
+  >
+    <!-- Datos principales de la liquidación. -->
+    <section class="form-card">
+      <div class="form-card__header">
+        <div>
+          <h2>Datos de la liquidación</h2>
+          <p>Seleccioná el grupo, el banco y el monto recaudado.</p>
+        </div>
+      </div>
+
+      @if (isLoadingCatalogs()) {
+        <p class="loading-message">Cargando grupos y bancos...</p>
+      } @else {
+        <div class="form-grid">
+          <!-- Selección del grupo. -->
+          <div class="form-field">
+            <label for="groupId">
+              Grupo
+              <span aria-hidden="true">*</span>
+            </label>
+
+            <select id="groupId" formControlName="groupId">
+              <option [ngValue]="null">Seleccionar grupo</option>
+
+              @for (group of groups(); track group.id) {
+                <option [ngValue]="group.id">
+                  {{ group.name }}
+                </option>
+              }
+            </select>
+
+            @if (
+              calculationForm.controls.groupId.touched &&
+              calculationForm.controls.groupId.hasError('required')
+            ) {
+              <p class="field-error">Seleccioná un grupo.</p>
+            }
+          </div>
+
+          <!-- Selección del banco. -->
+          <div class="form-field">
+            <label for="bankId">
+              Banco
+              <span aria-hidden="true">*</span>
+            </label>
+
+            <select id="bankId" formControlName="bankId">
+              <option [ngValue]="null">Seleccionar banco</option>
+
+              @for (bank of banks(); track bank.id) {
+                <option [ngValue]="bank.id">
+                  {{ bank.name }} — {{ bank.commissionPercentage }}%
+                </option>
+              }
+            </select>
+
+            @if (
+              calculationForm.controls.bankId.touched &&
+              calculationForm.controls.bankId.hasError('required')
+            ) {
+              <p class="field-error">Seleccioná un banco.</p>
+            }
+          </div>
+
+          <!-- Monto total recaudado. -->
+          <div class="form-field">
+            <label for="collectionAmount">
+              Monto recaudado
+              <span aria-hidden="true">*</span>
+            </label>
+
+            <div class="input-prefix">
+              <span>$</span>
+
+              <input
+                id="collectionAmount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                formControlName="collectionAmount"
+                placeholder="0,00"
+              />
+            </div>
+
+            @if (
+              calculationForm.controls.collectionAmount.touched &&
+              calculationForm.controls.collectionAmount.hasError('required')
+            ) {
+              <p class="field-error">Ingresá el monto recaudado.</p>
+            } @else if (
+              calculationForm.controls.collectionAmount.touched &&
+              calculationForm.controls.collectionAmount.invalid
+            ) {
+              <p class="field-error">
+                Ingresá un monto mayor que cero y con hasta dos decimales.
+              </p>
+            }
+          </div>
+
+          <!-- Fecha y hora de corte. -->
+          <div class="form-field">
+            <label for="calculationDateTime">
+              Fecha y hora de corte
+              <span aria-hidden="true">*</span>
+            </label>
+
+            <input
+              id="calculationDateTime"
+              type="datetime-local"
+              formControlName="calculationDateTime"
+            />
+
+            @if (
+              calculationForm.controls.calculationDateTime.touched &&
+              calculationForm.controls.calculationDateTime.hasError('required')
+            ) {
+              <p class="field-error">Ingresá la fecha y hora de corte.</p>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Porcentajes utilizados para realizar el cálculo. -->
+    <section class="form-card">
+      <div class="form-card__header">
+        <div>
+          <h2>Comisiones</h2>
+          <p>
+            El porcentaje del banco se obtiene automáticamente del banco
+            seleccionado.
+          </p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <!-- Porcentaje total. -->
+        <div class="form-field">
+          <label for="totalCommissionPercentage">
+            Comisión total
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="input-suffix">
+            <input
+              id="totalCommissionPercentage"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              formControlName="totalCommissionPercentage"
+            />
+
+            <span>%</span>
+          </div>
+
+          @if (
+            calculationForm.controls.totalCommissionPercentage.touched &&
+            calculationForm.controls.totalCommissionPercentage.hasError(
+              'required'
+            )
+          ) {
+            <p class="field-error">Ingresá la comisión total.</p>
+          } @else if (
+            calculationForm.controls.totalCommissionPercentage.touched &&
+            calculationForm.controls.totalCommissionPercentage.invalid
+          ) {
+            <p class="field-error">
+              Ingresá un porcentaje entre 0 y 100, con hasta dos decimales.
+            </p>
+          }
+        </div>
+
+        <!-- Porcentaje correspondiente al cliente. -->
+        <div class="form-field">
+          <label for="clientCommissionPercentage">
+            Comisión del cliente
+            <span class="optional-label">(opcional)</span>
+          </label>
+
+          <div class="input-suffix">
+            <input
+              id="clientCommissionPercentage"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              formControlName="clientCommissionPercentage"
+            />
+
+            <span>%</span>
+          </div>
+
+          @if (
+            calculationForm.controls.clientCommissionPercentage.touched &&
+            calculationForm.controls.clientCommissionPercentage.invalid
+          ) {
+            <p class="field-error">
+              Ingresá un porcentaje entre 0 y 100, con hasta dos decimales.
+            </p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Observaciones adicionales. -->
+    <section class="form-card">
+      <div class="form-card__header">
+        <div>
+          <h2>Observaciones</h2>
+          <p>Podés agregar información adicional sobre la liquidación.</p>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="notes">
+          Observaciones
+          <span class="optional-label">(opcional)</span>
+        </label>
+
+        <textarea
+          id="notes"
+          rows="4"
+          maxlength="300"
+          formControlName="notes"
+          placeholder="Ejemplo: liquidación correspondiente al cierre de julio."
+        ></textarea>
+
+        <div class="field-footer">
+          @if (
+            calculationForm.controls.notes.touched &&
+            calculationForm.controls.notes.hasError('maxlength')
+          ) {
+            <p class="field-error">
+              Las observaciones no pueden superar los 300 caracteres.
+            </p>
+          } @else {
+            <span></span>
+          }
+
+          <span class="character-count">
+            {{ calculationForm.controls.notes.value?.length ?? 0 }}/300
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acciones del formulario. -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="button button--secondary"
+        [disabled]="isSubmitting()"
+        (click)="clearForm()"
+      >
+        Limpiar
+      </button>
+
+      <button
+        type="submit"
+        class="button button--primary"
+        [disabled]="
+          isSubmitting() ||
+          isLoadingCatalogs() ||
+          catalogError() !== null
+        "
+      >
+        @if (isSubmitting()) {
+          Registrando...
+        } @else {
+          Registrar liquidación
+        }
+      </button>
+    </div>
+  </form>
+</section>
