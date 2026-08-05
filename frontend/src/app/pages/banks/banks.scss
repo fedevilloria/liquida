@@ -1,0 +1,729 @@
+// Contenedor principal de la pantalla.
+.banks-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+// Encabezado de la página.
+.banks-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+
+  h1 {
+    margin: 0;
+    color: #172033;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    line-height: 1.15;
+  }
+
+  p {
+    max-width: 640px;
+    margin: 0.5rem 0 0;
+    color: #657086;
+    line-height: 1.5;
+  }
+}
+
+.banks-page__eyebrow {
+  display: block;
+  margin: 0 0 0.25rem;
+  color: #15946f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+// Distribuye el formulario y el listado en dos columnas.
+.banks-page__content {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+
+// Tarjetas principales.
+.bank-form-card,
+.banks-list-card {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid #dce2eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  box-shadow: 0 0.25rem 1rem rgb(23 32 51 / 6%);
+}
+
+// Mantiene visible el formulario al recorrer listados extensos.
+.bank-form-card {
+  position: sticky;
+  top: 1.5rem;
+}
+
+// Encabezados de las tarjetas.
+.bank-form-card__header,
+.banks-list-card__header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e8ecf2;
+
+  h2 {
+    margin: 0;
+    color: #273247;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #657086;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.banks-list-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+// Cantidad total de bancos registrados.
+.banks-count {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background-color: #ecfdf7;
+  color: #117b5d;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+// Formulario de creación y edición.
+.bank-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+}
+
+.bank-form__field {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: 0.5rem;
+    color: #344054;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #cfd5df;
+    border-radius: 0.5rem;
+    outline: none;
+    background-color: #ffffff;
+    color: #273247;
+    font: inherit;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  input:hover {
+    border-color: #aeb6c3;
+  }
+
+  input:focus {
+    border-color: #15946f;
+    box-shadow: 0 0 0 3px rgb(21 148 111 / 13%);
+  }
+
+  input.ng-invalid.ng-touched {
+    border-color: #d92d20;
+  }
+
+  input.ng-invalid.ng-touched:focus {
+    box-shadow: 0 0 0 3px rgb(217 45 32 / 12%);
+  }
+}
+
+// Campo específico para el porcentaje de comisión.
+.percentage-input {
+  position: relative;
+  width: 100%;
+
+  input {
+    padding-right: 2.75rem;
+  }
+}
+
+.percentage-input__symbol {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  color: #657086;
+  font-size: 0.9rem;
+  font-weight: 600;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+// Error de validación y contador.
+.bank-form__field-footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 1.25rem;
+  margin-top: 0.4rem;
+}
+
+.field-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.character-counter {
+  margin-left: auto;
+  color: #7a8497;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+// Acciones del formulario.
+.bank-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+// Botones generales.
+.button {
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 100ms ease;
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgb(21 148 111 / 18%);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.button--primary {
+  border-color: #15946f;
+  background-color: #15946f;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    border-color: #117b5d;
+    background-color: #117b5d;
+  }
+}
+
+.button--secondary {
+  border-color: #cfd5df;
+  background-color: #ffffff;
+  color: #344054;
+
+  &:hover:not(:disabled) {
+    border-color: #aeb6c3;
+    background-color: #f7f8fa;
+  }
+}
+
+// Mensajes de éxito y error.
+.message {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.message--success {
+  border-color: #9edecb;
+  background-color: #ecfdf7;
+  color: #117b5d;
+}
+
+.message--error {
+  border-color: #f2b8b5;
+  background-color: #fff5f5;
+  color: #9d2525;
+}
+
+// Estados de carga, error o listado vacío.
+.status-panel {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1.25rem;
+  text-align: center;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    color: #273247;
+    font-size: 1.05rem;
+  }
+
+  p {
+    color: #657086;
+    line-height: 1.5;
+  }
+}
+
+.status-panel--error {
+  color: #9d2525;
+
+  h3,
+  p {
+    color: inherit;
+  }
+}
+
+// Animación mostrada mientras se cargan los bancos.
+.loading-spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 4px solid #d1f4e9;
+  border-top-color: #15946f;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Tabla de bancos.
+.banks-table-container {
+  width: 100%;
+  margin-top: 1rem;
+  overflow-x: auto;
+  border: 1px solid #e8ecf2;
+  border-radius: 0.65rem;
+}
+
+.banks-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e8ecf2;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    background-color: #f5f7fb;
+    color: #4f5b70;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #263249;
+    font-size: 0.9rem;
+  }
+
+  tbody tr {
+    transition: background-color 150ms ease;
+  }
+
+  tbody tr:hover {
+    background-color: #f8f9fc;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.banks-table__name {
+  color: #273247;
+  overflow-wrap: anywhere;
+}
+
+// Destaca visualmente el porcentaje porque es información propia del banco.
+.banks-table__commission {
+  color: #344054;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.banks-table__row--inactive {
+  background-color: #fafafa;
+
+  .banks-table__name,
+  .banks-table__commission {
+    color: #7a8497;
+  }
+}
+
+.banks-table__actions-heading {
+  text-align: right !important;
+}
+
+.banks-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+// Indicadores del estado de cada banco.
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-badge--active {
+  background-color: #ecfdf7;
+  color: #117b5d;
+}
+
+.status-badge--inactive {
+  background-color: #f1f3f6;
+  color: #667085;
+}
+
+// Botones de edición, desactivación y reactivación.
+.action-button {
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid;
+  border-radius: 0.45rem;
+  background-color: #ffffff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+
+  &:focus-visible {
+    outline: 3px solid rgb(21 148 111 / 18%);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.action-button--edit {
+  border-color: #b9c6f4;
+  color: #3857d6;
+
+  &:hover:not(:disabled) {
+    border-color: #3857d6;
+    background-color: #f2f5ff;
+  }
+}
+
+.action-button--deactivate {
+  border-color: #f2b8b5;
+  color: #b42318;
+
+  &:hover:not(:disabled) {
+    border-color: #d92d20;
+    background-color: #fff5f5;
+  }
+}
+
+.action-button--restore {
+  border-color: #9edecb;
+  color: #117b5d;
+
+  &:hover:not(:disabled) {
+    border-color: #15946f;
+    background-color: #ecfdf7;
+  }
+}
+
+// Fondo del modal de confirmación.
+.confirmation-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background-color: rgb(16 24 40 / 55%);
+  backdrop-filter: blur(2px);
+}
+
+// Ventana de confirmación propia de Liquida.
+.confirmation-dialog {
+  width: min(100%, 430px);
+  padding: 1.5rem;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.875rem;
+  background-color: #ffffff;
+  box-shadow: 0 1.5rem 3rem rgb(16 24 40 / 24%);
+}
+
+.confirmation-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.2rem;
+  }
+}
+
+.confirmation-dialog__icon {
+  display: flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #fef3f2;
+  color: #d92d20;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.confirmation-dialog__content {
+  p {
+    margin: 0.75rem 0 0;
+    color: #475467;
+    line-height: 1.5;
+  }
+
+  strong {
+    color: #172033;
+  }
+}
+
+.confirmation-dialog__detail {
+  color: #667085 !important;
+  font-size: 0.875rem;
+}
+
+.confirmation-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.button--danger {
+  border-color: #d92d20;
+  background-color: #d92d20;
+  color: #ffffff;
+
+  &:hover:not(:disabled) {
+    border-color: #b42318;
+    background-color: #b42318;
+  }
+
+  &:focus-visible {
+    outline-color: rgb(217 45 32 / 20%);
+  }
+}
+
+// Adaptación para tablets.
+@media (max-width: 1000px) {
+  .banks-page__content {
+    grid-template-columns: 1fr;
+  }
+
+  .bank-form-card {
+    position: static;
+  }
+}
+
+// Convierte la tabla en tarjetas para celulares.
+@media (max-width: 640px) {
+  .banks-page {
+    gap: 1.25rem;
+  }
+
+  .banks-page__header h1 {
+    font-size: 1.65rem;
+  }
+
+  .bank-form-card,
+  .banks-list-card {
+    padding: 1.25rem;
+  }
+
+  .bank-form__actions {
+    flex-direction: column;
+
+    .button {
+      width: 100%;
+    }
+  }
+
+  .banks-list-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .banks-table-container {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .banks-table {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    tr {
+      display: block;
+      padding: 1rem;
+      border: 1px solid #e1e6ee;
+      border-radius: 0.65rem;
+      background-color: #ffffff;
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid #eef1f5;
+      text-align: right;
+
+      &::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        color: #657086;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-align: left;
+        text-transform: uppercase;
+      }
+
+      &:first-child {
+        padding-top: 0;
+      }
+
+      &:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+    }
+  }
+
+  .banks-table__row--inactive {
+    background-color: #fafafa !important;
+  }
+
+  .banks-table__actions {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+
+    &::before {
+      margin-bottom: 0.15rem;
+    }
+
+    .action-button {
+      width: 100%;
+    }
+  }
+}
+
+// Adaptación del modal en celulares pequeños.
+@media (max-width: 480px) {
+  .confirmation-dialog {
+    padding: 1.25rem;
+  }
+
+  .confirmation-dialog__actions {
+    flex-direction: column-reverse;
+
+    .button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 400px) {
+  .bank-form-card,
+  .banks-list-card {
+    padding: 1rem;
+  }
+
+  .banks-table td {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: left;
+  }
+}

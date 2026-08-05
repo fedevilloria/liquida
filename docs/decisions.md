@@ -381,134 +381,87 @@ Los siguientes métodos devuelven DTOs de respuesta desde el servicio:
 
 Los controladores delegan la operación al servicio y devuelven directamente el resultado.
 
+## DEC-023 - Estrategia de pruebas unitarias
+
+Los servicios serán probados mediante mocks de repositorios y QueryBuilder reutilizables, evitando dependencias con PostgreSQL y manteniendo las pruebas aisladas.
+
 ---
 
-## DEC-023 — Estrategia de pruebas unitarias
+## DEC-024 — Validación centralizada de variables de entorno
 
 **Estado:** Aceptada
 
 ### Decisión
 
-Los servicios y controladores del backend serán probados mediante pruebas unitarias ejecutadas con Jest y las herramientas de testing de NestJS.
+La configuración del backend se validará al iniciar mediante `env.validation.ts` y `ConfigModule.forRoot()`.
 
-Las pruebas reemplazarán las dependencias externas mediante mocks, evitando utilizar una conexión real con PostgreSQL.
-
-Se utilizarán mocks para:
-
-- Repositorios de TypeORM.
-- Servicios dependientes.
-- Métodos de persistencia.
-- Métodos de consulta.
-- `QueryBuilder`.
-
-Los datos repetidos de prueba se construirán mediante fixtures reutilizables.
-
-### Motivo
-
-- Mantener las pruebas aisladas de la base de datos.
-- Evitar modificaciones sobre datos reales.
-- Permitir una ejecución rápida y repetible.
-- Probar cada unidad de forma independiente.
-- Simular escenarios exitosos y de error de manera controlada.
-- Facilitar la detección de regresiones.
-- Reducir la duplicación dentro de los archivos de prueba.
-- Verificar reglas de negocio sin depender de Postman ni de servicios externos.
-
-### Implementación
-
-El servicio de liquidaciones utiliza fixtures reutilizables para construir:
-
-- DTOs de registro.
-- Grupos.
-- Bancos.
-- Liquidaciones.
-
-Las consultas construidas con TypeORM se prueban mediante un mock encadenable de `QueryBuilder`.
-
-Los métodos de construcción del mock utilizan `mockReturnThis()` para permitir llamadas como:
-
-```ts
-query
-  .leftJoinAndSelect(...)
-  .andWhere(...)
-  .orderBy(...)
-  .skip(...)
-  .take(...)
-  .getManyAndCount();
-```
-
----
-
-## DEC-024 — Documentación interactiva mediante OpenAPI
-
-**Estado:** Aceptada
-
-### Decisión
-
-Documentar la API mediante Swagger y OpenAPI 3, incluyendo operaciones, parámetros, DTOs, ejemplos de solicitud y respuesta, y códigos HTTP.
-
-La interfaz estará disponible en `/api/docs` cuando `SWAGGER_ENABLED=true`.
-
-### Motivo
-
-- Mantener un contrato visible y actualizado para el frontend.
-- Facilitar las pruebas manuales de los endpoints.
-- Reducir ambigüedades sobre parámetros, validaciones y respuestas.
-- Permitir deshabilitar la documentación en entornos donde no deba exponerse.
-
----
-
-## DEC-025 — Validación centralizada de variables de entorno
-
-**Estado:** Aceptada
-
-### Decisión
-
-Validar y tipar la configuración al iniciar la aplicación. El repositorio incluirá `.env.example` como referencia, mientras que los archivos `.env` con valores reales permanecerán excluidos del control de versiones.
+Se validarán y transformarán las variables necesarias para el entorno, puerto HTTP, PostgreSQL, CORS y Swagger.
 
 ### Motivo
 
 - Detectar configuraciones incompletas antes de aceptar solicitudes.
-- Evitar conversiones dispersas de cadenas a números o booleanos.
-- Documentar las variables requeridas sin publicar credenciales.
-- Mantener un comportamiento consistente entre desarrollo, pruebas y producción.
+- Evitar errores tardíos de conexión o tipos incorrectos.
+- Mantener una configuración reproducible mediante `.env.example`.
 
 ---
 
-## DEC-026 — Configuración dependiente del entorno
+## DEC-025 — Desactivar `synchronize` de TypeORM en producción
 
 **Estado:** Aceptada
 
 ### Decisión
 
-- Obtener el puerto HTTP desde `PORT`.
-- Obtener el origen permitido por CORS desde `FRONTEND_URL`.
-- Habilitar Swagger mediante `SWAGGER_ENABLED`.
-- Mantener `synchronize` de TypeORM desactivado en producción.
+TypeORM utilizará `synchronize: !isProduction`.
 
 ### Motivo
 
-- Evitar valores de infraestructura fijados en el código.
-- Permitir que Angular consuma la API desde un origen configurable.
-- Reducir el riesgo de cambios automáticos del esquema en producción.
-- Adaptar las capacidades de diagnóstico y documentación a cada entorno.
+La sincronización automática resulta útil durante desarrollo y pruebas, pero no debe modificar el esquema de una base de datos productiva de manera implícita.
 
 ---
 
-## DEC-027 — Pruebas HTTP End-to-End
+## DEC-026 — Documentación OpenAPI opcional
 
 **Estado:** Aceptada
 
 ### Decisión
 
-Complementar las pruebas unitarias con pruebas E2E ejecutadas mediante Jest y Supertest sobre una instancia HTTP de NestJS.
+La API utilizará Swagger/OpenAPI mediante `@nestjs/swagger` y `swagger-ui-express`.
+
+La interfaz se publica en `/api/docs` cuando `SWAGGER_ENABLED` se encuentra habilitado.
 
 ### Motivo
 
-- Verificar rutas, serialización, validaciones globales y códigos HTTP.
-- Detectar diferencias entre el comportamiento interno de los servicios y el contrato expuesto.
-- Probar errores de validación, como páginas inválidas o propiedades desconocidas.
+- Facilitar la consulta y prueba de los contratos HTTP durante el desarrollo.
+- Mantener la posibilidad de deshabilitar la documentación en producción.
 
-### Resultado
+---
 
-La versión actual cuenta con 6 pruebas E2E aprobadas y mantiene separadas las responsabilidades de las pruebas unitarias y HTTP.
+## DEC-027 — Arquitectura standalone del frontend
+
+**Estado:** Aceptada
+
+### Decisión
+
+El frontend conservará la arquitectura standalone de Angular 22, utilizará rutas lazy mediante `loadComponent`, signals para estado de interfaz y `provideHttpClient()` para comunicación HTTP.
+
+### Motivo
+
+- Mantener la estructura actual de Angular sin introducir módulos innecesarios.
+- Separar las pantallas por responsabilidad.
+- Facilitar una evolución incremental del frontend.
+
+---
+
+## DEC-028 — Desactivación administrativa con confirmación
+
+**Estado:** Aceptada
+
+### Decisión
+
+Las pantallas de grupos y bancos solicitarán confirmación antes de ejecutar la desactivación lógica y permitirán reactivar posteriormente los registros.
+
+### Motivo
+
+- Evitar desactivaciones accidentales.
+- Hacer visible que la operación no elimina información histórica.
+- Mantener alineada la interfaz con la regla de borrado lógico del backend.

@@ -27,3 +27,11 @@ export interface Bank {
   commissionPercentage: number;
   active: boolean;
 }
+
+/**
+ * Representa los datos enviados al crear o modificar un banco.
+ */
+export interface BankRequest {
+  name: string;
+  commissionPercentage: number;
+}

@@ -4,29 +4,23 @@
 
 ### URL local
 
-
+```text
 http://localhost:3000
+```
+
+### Formato
+
+Las solicitudes y respuestas utilizan JSON.
 
 ### Documentación interactiva
 
-Con la aplicación iniciada y `SWAGGER_ENABLED=true`, la documentación OpenAPI se encuentra disponible en:
+Cuando `SWAGGER_ENABLED=true`, la documentación OpenAPI está disponible en:
 
 ```text
 http://localhost:3000/api/docs
 ```
 
-Swagger permite consultar los endpoints, parámetros, cuerpos de solicitud, respuestas y códigos HTTP documentados, además de ejecutar solicitudes de prueba desde el navegador.
-
-En los entornos donde no se desee publicar la documentación, puede deshabilitarse mediante:
-
-```env
-SWAGGER_ENABLED=false
-```
-
-
-### Formato
-
-Las solicitudes y respuestas utilizan JSON.
+Swagger se utiliza como apoyo para consultar contratos, parámetros y respuestas de la API durante el desarrollo.
 
 ### Códigos comunes
 
@@ -45,31 +39,31 @@ Las solicitudes y respuestas utilizan JSON.
 
 ## Crear grupo
 
-
+```http
 POST /groups
-
+```
 
 ### Body
 
-
+```json
 {
   "name": "Silvina C"
 }
-
+```
 
 ### Respuesta exitosa
 
-
+```http
 201 Created
-
+```
 
 ---
 
 ## Consultar todos los grupos
 
-
+```http
 GET /groups
-
+```
 
 Incluye grupos activos e inactivos.
 
@@ -77,47 +71,47 @@ Incluye grupos activos e inactivos.
 
 ## Consultar grupos activos
 
-
+```http
 GET /groups/active
-
+```
 
 ---
 
 ## Consultar grupo por ID
 
-
+```http
 GET /groups/:id
-
+```
 
 Ejemplo:
 
-
+```http
 GET /groups/1
-
+```
 
 ---
 
 ## Modificar grupo
 
-
+```http
 PATCH /groups/:id
-
+```
 
 ### Body
 
-
+```json
 {
   "name": "Nuevo nombre"
 }
-
+```
 
 ---
 
 ## Desactivar grupo
 
-
+```http
 DELETE /groups/:id
-
+```
 
 Realiza un borrado lógico.
 
@@ -125,9 +119,9 @@ Realiza un borrado lógico.
 
 ## Reactivar grupo
 
-
+```http
 PATCH /groups/:id/restore
-
+```
 
 ---
 
@@ -135,32 +129,32 @@ PATCH /groups/:id/restore
 
 ## Crear banco
 
-
+```http
 POST /banks
-
+```
 
 ### Body
 
-
+```json
 {
   "name": "Copter",
   "commissionPercentage": 0.8
 }
-
+```
 
 ### Respuesta exitosa
 
-
+```http
 201 Created
-
+```
 
 ---
 
 ## Consultar todos los bancos
 
-
+```http
 GET /banks
-
+```
 
 Incluye bancos activos e inactivos.
 
@@ -168,57 +162,57 @@ Incluye bancos activos e inactivos.
 
 ## Consultar bancos activos
 
-
+```http
 GET /banks/active
-
+```
 
 ---
 
 ## Consultar banco por ID
 
-
+```http
 GET /banks/:id
-
+```
 
 ---
 
 ## Modificar banco
 
-
+```http
 PATCH /banks/:id
-
+```
 
 ### Modificar nombre
 
-
+```json
 {
   "name": "Nuevo nombre"
 }
-
+```
 
 ### Modificar porcentaje
 
-
+```json
 {
   "commissionPercentage": 0.75
 }
-
+```
 
 ---
 
 ## Desactivar banco
 
-
+```http
 DELETE /banks/:id
-
+```
 
 ---
 
 ## Reactivar banco
 
-
+```http
 PATCH /banks/:id/restore
-
+```
 
 ---
 
@@ -226,13 +220,13 @@ PATCH /banks/:id/restore
 
 ## Registrar una liquidación
 
-
+```http
 POST /commission-calculations
-
+```
 
 ### Body
 
-json
+```json
 {
   "groupId": 1,
   "bankId": 1,
@@ -242,11 +236,11 @@ json
   "calculationDateTime": "2026-07-15T18:30:00",
   "notes": "Liquidación correspondiente al cierre del día."
 }
-
+```
 
 ### Respuesta
 
-json
+```json
 {
   "id": 1,
   "groupId": 1,
@@ -260,234 +254,221 @@ json
   "ownCommissionPercentage": 1.1,
   "totalCommissionAmount": 186964.01,
   "bankCommissionAmount": 29914.24,
-  "clientCommissionAmount": 74785.60,
+  "clientCommissionAmount": 74785.6,
   "ownCommissionAmount": 82264.16,
   "calculationDateTime": "2026-07-15T21:30:00.000Z",
   "notes": "Liquidación correspondiente al cierre del día.",
   "createdAt": "2026-07-15T20:51:39.474Z"
 }
-
----
-
-## Consultar historial de liquidaciones
-
-GET /commission-calculations
-
-
-Permite consultar el historial de liquidaciones mediante paginación, filtros opcionales y ordenamiento.
-
-Por defecto, devuelve la primera página con un máximo de 10 liquidaciones, ordenadas desde la fecha de liquidación más reciente hacia la más antigua.
-
-Todos los parámetros son opcionales y pueden combinarse entre sí.
-
-### Parámetros de consulta
-
-| Parámetro | Tipo | Valor predeterminado | Descripción |
-|-----------|------|----------------------|-------------|
-| groupId | number | - | Filtra las liquidaciones por grupo |
-| bankId | number | - | Filtra las liquidaciones por banco |
-| from | YYYY-MM-DD | - | Fecha inicial del período |
-| to | YYYY-MM-DD | - | Fecha final del período |
-| page | number | 1 | Número de página. Debe ser mayor o igual a 1 |
-| limit | number | 10 | Cantidad máxima de liquidaciones por página |
-| sortBy | string | calculationDateTime | Campo utilizado para ordenar los resultados |
-| sortOrder | string | DESC | Dirección del ordenamiento: ASC o DESC |
-
-### Ejemplos
-
-#### Primera página
-
-
-GET /commission-calculations?page=1&limit=10
-
-
-#### Segunda página
-
-
-GET /commission-calculations?page=2&limit=10
-
-
-#### Liquidaciones de un grupo
-
-
-GET /commission-calculations?groupId=1
-
-
-#### Liquidaciones de un banco
-
-
-GET /commission-calculations?bankId=1
-
-
-#### Liquidaciones de un período
-
-
-GET /commission-calculations?from=2026-07-01&to=2026-07-31
-
-
-#### Ordenar por monto de recaudación de menor a mayor
-
-
-GET /commission-calculations?sortBy=collectionAmount&sortOrder=ASC
-
-
-#### Ordenar por monto de recaudación de mayor a menor
-
-
-GET /commission-calculations?sortBy=collectionAmount&sortOrder=DESC
-
-
-#### Combinar filtros, paginación y ordenamiento
-
-
-GET /commission-calculations?groupId=1&bankId=1&from=2026-07-01&to=2026-07-31&page=1&limit=5&sortBy=collectionAmount&sortOrder=DESC
-
-
-### Respuesta
-
-json
-{
-  "data": [
-    {
-      "id": 1,
-      "groupId": 1,
-      "groupName": "Silvina C",
-      "bankId": 1,
-      "bankName": "Copter",
-      "collectionAmount": 37584439.65,
-      "totalCommissionPercentage": 2.5,
-      "bankCommissionPercentage": 0.3,
-      "clientCommissionPercentage": null,
-      "ownCommissionPercentage": 2.2,
-      "totalCommissionAmount": 939610.99,
-      "bankCommissionAmount": 112753.32,
-      "clientCommissionAmount": null,
-      "ownCommissionAmount": 826857.67,
-      "calculationDateTime": "2026-07-24T13:00:00.000Z",
-      "notes": "Liquidación real de prueba - Silvina C.",
-      "createdAt": "2026-07-24T14:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "totalItems": 1,
-    "totalPages": 1,
-    "hasPreviousPage": false,
-    "hasNextPage": false
-  }
-}
-
-
-### Metadatos de paginación
-
-| Campo | Descripción |
-|-------|-------------|
-| page | Página solicitada |
-| limit | Cantidad máxima de registros por página |
-| totalItems | Cantidad total de liquidaciones que cumplen los filtros |
-| totalPages | Cantidad total de páginas disponibles |
-| hasPreviousPage | Indica si existe una página anterior |
-| hasNextPage | Indica si existe una página siguiente |
-
-### Respuestas HTTP
-
-- **200 OK** cuando la consulta se realiza correctamente.
-- **400 Bad Request** cuando los parámetros son inválidos.
-- **400 Bad Request** cuando la fecha inicial es posterior a la fecha final.
-- **400 Bad Request** cuando se utiliza un campo o dirección de ordenamiento no permitidos.
+```
 
 ---
 
 ## Consultar una liquidación
 
-
+```http
 GET /commission-calculations/:id
-
+```
 
 Ejemplo:
 
-
+```http
 GET /commission-calculations/1
-
-
-### Respuestas HTTP
-
-- **200 OK** cuando la liquidación existe.
-- **404 Not Found** cuando no existe una liquidación con el identificador indicado.
+```
 
 ---
 
-## Consultar dashboard de liquidaciones
+## Consultar historial de liquidaciones
 
-GET /commission-calculations/dashboard
+```http
+GET /commission-calculations
+```
 
-Devuelve un resumen estadístico de las liquidaciones registradas.
-La consulta puede limitarse mediante una fecha inicial y una fecha final. Ambos parámetros son opcionales y pueden utilizarse individualmente o en conjunto.
+Devuelve las liquidaciones ordenadas desde la más reciente.
+
+Todos los filtros son opcionales y pueden combinarse libremente.
 
 ### Parámetros de consulta
 
 | Parámetro | Tipo | Descripción |
-|-----------|------|-------------|
-| from | YYYY-MM-DD | Fecha inicial del período |
-| to | YYYY-MM-DD | Fecha final del período |
-
-Los filtros incluyen el día completo:
-
-- from se interpreta desde las 00:00:00.000.
-- to se interpreta hasta las 23:59:59.999.
+|---|---|---|
+| `groupId` | number | Filtra por grupo |
+| `bankId` | number | Filtra por banco |
+| `from` | `YYYY-MM-DD` | Fecha inicial del período |
+| `to` | `YYYY-MM-DD` | Fecha final del período |
+| `page` | number | Página solicitada; por defecto 1 |
+| `limit` | number | Cantidad máxima de registros por página; por defecto 10 |
+| `sortBy` | string | Campo de ordenamiento habilitado; por defecto `calculationDateTime` |
+| `sortOrder` | `ASC` o `DESC` | Dirección; por defecto `DESC` |
 
 ### Ejemplos
 
-### Dashboard completo
+Todas las liquidaciones:
 
+```http
+GET /commission-calculations
+```
+
+Liquidaciones de un grupo:
+
+```http
+GET /commission-calculations?groupId=1
+```
+
+Liquidaciones de un banco:
+
+```http
+GET /commission-calculations?bankId=1
+```
+
+Liquidaciones de un período:
+
+```http
+GET /commission-calculations?from=2026-07-01&to=2026-07-31
+```
+
+Combinación de filtros:
+
+```http
+GET /commission-calculations?groupId=1&bankId=1&from=2026-07-01&to=2026-07-31
+```
+
+Paginación y ordenamiento:
+
+```http
+GET /commission-calculations?page=2&limit=20&sortBy=collectionAmount&sortOrder=ASC
+```
+
+### Estructura de respuesta paginada
+
+```json
+{
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 0,
+    "totalPages": 0,
+    "hasPreviousPage": false,
+    "hasNextPage": false
+  }
+}
+```
+
+`data` contiene objetos con la misma estructura pública utilizada por la consulta individual de liquidaciones.
+
+### Respuestas
+
+- **200 OK** cuando la consulta se realiza correctamente.
+- **400 Bad Request** cuando la fecha inicial es posterior a la fecha final o los parámetros son inválidos.
+
+---
+
+## Dashboard de liquidaciones
+
+### Obtener estadísticas del dashboard
+
+```http
 GET /commission-calculations/dashboard
+```
 
-### Dashboard desde una fecha
+Devuelve un resumen general de las liquidaciones registradas.
 
-GET /commission-calculations/dashboard?from=2026-07-01
+Si no se envían fechas, se consideran todas las liquidaciones existentes.
 
-### Dashboard hasta una fecha
+### Parámetros de consulta
 
-GET /commission-calculations/dashboard?to=2026-07-31
+| Parámetro | Tipo | Obligatorio | Descripción |
+|---|---|---:|---|
+| `from` | `YYYY-MM-DD` | No | Fecha inicial del período |
+| `to` | `YYYY-MM-DD` | No | Fecha final del período |
 
-### Dashboard de un período
+Los parámetros pueden utilizarse de manera independiente o combinada.
 
+### Ejemplos
+
+Sin filtros:
+
+```http
+GET /commission-calculations/dashboard
+```
+
+Con período:
+
+```http
 GET /commission-calculations/dashboard?from=2026-07-01&to=2026-07-31
+```
 
-### Respuesta
+### Respuesta exitosa
 
-json
+```http
+200 OK
+```
+
+```json
 {
   "from": "2026-07-01",
   "to": "2026-07-31",
   "calculationCount": 4,
-  "totalCollectionAmount": 10000000,
-  "totalCommissionAmount": 250000,
-  "bankCommissionAmount": 30000,
-  "clientCommissionAmount": 20000,
-  "ownCommissionAmount": 200000,
-  "averageCollectionAmount": 2500000,
+  "totalCollectionAmount": 15865599.12,
+  "totalCommissionAmount": 396639.98,
+  "bankCommissionAmount": 63462.4,
+  "clientCommissionAmount": 158656,
+  "ownCommissionAmount": 174521.58,
+  "averageCollectionAmount": 3966399.78,
   "topGroup": {
     "id": 1,
     "name": "Silvina C",
-    "totalCollectionAmount": 6000000
+    "totalCollectionAmount": 9225599.12
   },
   "topBank": {
-    "id": 2,
-    "name": "Telepagos",
+    "id": 1,
+    "name": "Copter",
     "calculationCount": 3
   }
 }
+```
 
-### Respuesta sin liquidaciones
+Los valores son ilustrativos y dependen de los registros existentes.
 
-Cuando no existen liquidaciones para el período consultado, los valores numéricos se devuelven en cero y los rankings se devuelven como null.
+### Campos de respuesta
 
-json
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `from` | string o null | Fecha inicial utilizada |
+| `to` | string o null | Fecha final utilizada |
+| `calculationCount` | number | Cantidad de liquidaciones |
+| `totalCollectionAmount` | number | Recaudación total |
+| `totalCommissionAmount` | number | Comisión total acumulada |
+| `bankCommissionAmount` | number | Comisión bancaria acumulada |
+| `clientCommissionAmount` | number | Comisión del cliente acumulada |
+| `ownCommissionAmount` | number | Comisión propia acumulada |
+| `averageCollectionAmount` | number | Recaudación promedio |
+| `topGroup` | object o null | Grupo con mayor recaudación |
+| `topBank` | object o null | Banco más utilizado |
+
+### Estructura de `topGroup`
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | number | Identificador del grupo |
+| `name` | string | Nombre del grupo |
+| `totalCollectionAmount` | number | Recaudación acumulada del grupo |
+
+### Estructura de `topBank`
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | number | Identificador del banco |
+| `name` | string | Nombre del banco |
+| `calculationCount` | number | Cantidad de liquidaciones del banco |
+
+### Período sin resultados
+
+```json
 {
-  "from": "2026-07-01",
-  "to": "2026-07-31",
+  "from": "2025-01-01",
+  "to": "2025-01-31",
   "calculationCount": 0,
   "totalCollectionAmount": 0,
   "totalCommissionAmount": 0,
@@ -498,9 +479,50 @@ json
   "topGroup": null,
   "topBank": null
 }
+```
 
-### Respuestas HTTP
+### Errores de validación
 
-- **200 OK** cuando la consulta se realiza correctamente.
-- **400 Bad Request** cuando la fecha inicial es posterior a la fecha final.
-- **400 Bad Request** cuando alguno de los parámetros tiene un formato inválido.
+Las fechas deben respetar el formato `YYYY-MM-DD`.
+
+Ejemplo inválido:
+
+```http
+GET /commission-calculations/dashboard?from=01-07-2026
+```
+
+Si la fecha inicial es posterior a la fecha final:
+
+```http
+GET /commission-calculations/dashboard?from=2026-08-01&to=2026-07-01
+```
+
+La API responde:
+
+```json
+{
+  "statusCode": 400,
+  "message": "La fecha inicial no puede ser posterior a la fecha final.",
+  "error": "Bad Request"
+}
+```
+
+---
+
+# Configuración relevante para consumo web
+
+La API valida la configuración antes de iniciar. Para desarrollo local, `.env.example` contempla:
+
+```text
+NODE_ENV=development
+PORT=3000
+DB_HOST=
+DB_PORT=5432
+DB_USERNAME=
+DB_PASSWORD=
+DB_NAME=
+FRONTEND_URL=http://localhost:4200
+SWAGGER_ENABLED=true
+```
+
+`FRONTEND_URL` determina el origen permitido por CORS. `SWAGGER_ENABLED` controla si se publica `/api/docs`.

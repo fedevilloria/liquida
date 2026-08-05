@@ -1,1 +1,422 @@
-<p>banks works!</p>
+<section class="banks-page">
+  <div class="banks-page__header">
+    <div>
+      <span class="banks-page__eyebrow">Configuración</span>
+      <h1>Gestión de bancos</h1>
+      <p>
+        Administrá los bancos y sus porcentajes de comisión utilizados
+        para calcular las liquidaciones.
+      </p>
+    </div>
+  </div>
+
+  <div class="banks-page__content">
+
+    <!-- Formulario para crear o editar bancos -->
+    <section class="bank-form-card">
+      <div class="bank-form-card__header">
+        <div>
+          <h2>
+            {{ isEditing() ? 'Editar banco' : 'Nuevo banco' }}
+          </h2>
+
+          <p>
+            @if (isEditing()) {
+              Modificá el nombre o el porcentaje de comisión del banco.
+            } @else {
+              Registrá un banco y definí el porcentaje de comisión que cobra.
+            }
+          </p>
+        </div>
+      </div>
+
+      <form
+        class="bank-form"
+        [formGroup]="bankForm"
+        (ngSubmit)="submitBank()"
+      >
+        <!-- Nombre -->
+        <div class="bank-form__field">
+          <label for="bank-name">
+            Nombre del banco
+          </label>
+
+          <input
+            id="bank-name"
+            type="text"
+            formControlName="name"
+            maxlength="100"
+            autocomplete="off"
+            placeholder="Ej.: Banco Macro"
+          />
+
+          <div class="bank-form__field-footer">
+            <div>
+              @if (
+                bankForm.controls.name.touched &&
+                bankForm.controls.name.hasError('required')
+              ) {
+                <p class="field-error">
+                  El nombre del banco es obligatorio.
+                </p>
+              }
+
+              @if (
+                bankForm.controls.name.touched &&
+                bankForm.controls.name.hasError('maxlength')
+              ) {
+                <p class="field-error">
+                  El nombre no puede superar los 100 caracteres.
+                </p>
+              }
+            </div>
+
+            <span class="character-counter">
+              {{ bankForm.controls.name.value.length }}/100
+            </span>
+          </div>
+        </div>
+
+        <!-- Porcentaje de comisión -->
+        <div class="bank-form__field">
+          <label for="bank-commission">
+            Comisión bancaria
+          </label>
+
+          <div class="percentage-input">
+            <input
+              id="bank-commission"
+              type="number"
+              formControlName="commissionPercentage"
+              min="0"
+              max="100"
+              step="0.01"
+              inputmode="decimal"
+              placeholder="Ej.: 0.80"
+            />
+
+            <span
+              class="percentage-input__symbol"
+              aria-hidden="true"
+            >
+              %
+            </span>
+          </div>
+
+          <div class="bank-form__field-footer">
+            <div>
+              @if (
+                bankForm.controls.commissionPercentage.touched &&
+                bankForm.controls.commissionPercentage.hasError('required')
+              ) {
+                <p class="field-error">
+                  El porcentaje de comisión es obligatorio.
+                </p>
+              }
+
+              @if (
+                bankForm.controls.commissionPercentage.touched &&
+                (
+                  bankForm.controls.commissionPercentage.hasError('min') ||
+                  bankForm.controls.commissionPercentage.hasError('max') ||
+                  bankForm.controls.commissionPercentage.hasError('invalidPercentage')
+                )
+              ) {
+                <p class="field-error">
+                  La comisión debe estar entre 0% y 100%.
+                </p>
+              }
+
+              @if (
+                bankForm.controls.commissionPercentage.touched &&
+                bankForm.controls.commissionPercentage.hasError('pattern')
+              ) {
+                <p class="field-error">
+                  La comisión puede tener como máximo 2 decimales.
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones del formulario -->
+        <div class="bank-form__actions">
+          <button
+            type="submit"
+            class="button button--primary"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+              Guardando...
+            } @else if (isEditing()) {
+              Guardar cambios
+            } @else {
+              Crear banco
+            }
+          </button>
+
+          @if (isEditing()) {
+            <button
+              type="button"
+              class="button button--secondary"
+              [disabled]="isSaving()"
+              (click)="cancelEditing()"
+            >
+              Cancelar
+            </button>
+          }
+        </div>
+      </form>
+    </section>
+
+    <!-- Listado de bancos -->
+    <section class="banks-list-card">
+      <div class="banks-list-card__header">
+        <div>
+          <h2>Bancos registrados</h2>
+          <p>Los bancos activos aparecen primero.</p>
+        </div>
+
+        @if (!isLoading()) {
+          <span class="banks-count">
+            {{ banks().length }}
+            {{ banks().length === 1 ? 'banco' : 'bancos' }}
+          </span>
+        }
+      </div>
+
+      <!-- Mensaje de operación correcta -->
+      @if (successMessage()) {
+        <div
+          class="message message--success"
+          role="status"
+          aria-live="polite"
+        >
+          {{ successMessage() }}
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (errorMessage() && !isLoading()) {
+        <div
+          class="message message--error"
+          role="alert"
+        >
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Cargando -->
+      @if (isLoading()) {
+        <div
+          class="status-panel"
+          aria-live="polite"
+        >
+          <span
+            class="loading-spinner"
+            aria-hidden="true"
+          ></span>
+
+          <p>Cargando bancos...</p>
+        </div>
+      } @else if (errorMessage() && banks().length === 0) {
+
+        <!-- Error al cargar -->
+        <div class="status-panel status-panel--error">
+          <h3>No pudimos cargar los bancos</h3>
+
+          <p>{{ errorMessage() }}</p>
+
+          <button
+            type="button"
+            class="button button--primary"
+            (click)="retry()"
+          >
+            Reintentar
+          </button>
+        </div>
+      } @else if (banks().length === 0) {
+
+        <!-- Lista vacía -->
+        <div class="status-panel">
+          <h3>Todavía no hay bancos</h3>
+
+          <p>
+            Registrá el primer banco utilizando el formulario.
+          </p>
+        </div>
+      } @else {
+
+        <!-- Tabla de bancos -->
+        <div class="banks-table-container">
+          <table class="banks-table">
+            <thead>
+              <tr>
+                <th scope="col">Banco</th>
+
+                <th scope="col">
+                  Comisión
+                </th>
+
+                <th scope="col">
+                  Estado
+                </th>
+
+                <th
+                  scope="col"
+                  class="banks-table__actions-heading"
+                >
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (bank of banks(); track bank.id) {
+                <tr
+                  [class.banks-table__row--inactive]="!bank.active"
+                >
+                  <td data-label="Banco">
+                    <strong class="banks-table__name">
+                      {{ bank.name }}
+                    </strong>
+                  </td>
+
+                  <td data-label="Comisión">
+                    <span class="banks-table__commission">
+                      {{ bank.commissionPercentage }}%
+                    </span>
+                  </td>
+
+                  <td data-label="Estado">
+                    <span
+                      class="status-badge"
+                      [class.status-badge--active]="bank.active"
+                      [class.status-badge--inactive]="!bank.active"
+                    >
+                      {{ bank.active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+
+                  <td
+                    data-label="Acciones"
+                    class="banks-table__actions"
+                  >
+                    <button
+                      type="button"
+                      class="action-button action-button--edit"
+                      [disabled]="
+                        isSaving() ||
+                        processingBankId() !== null ||
+                        !bank.active
+                      "
+                      (click)="startEditing(bank)"
+                    >
+                      Editar
+                    </button>
+
+                    @if (bank.active) {
+                      <button
+                        type="button"
+                        class="action-button action-button--deactivate"
+                        [disabled]="
+                          isSaving() ||
+                          processingBankId() !== null
+                        "
+                        (click)="requestBankDeactivation(bank)"
+                      >
+                        @if (processingBankId() === bank.id) {
+                          Desactivando...
+                        } @else {
+                          Desactivar
+                        }
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="action-button action-button--restore"
+                        [disabled]="
+                          isSaving() ||
+                          processingBankId() !== null
+                        "
+                        (click)="restoreBank(bank)"
+                      >
+                        @if (processingBankId() === bank.id) {
+                          Reactivando...
+                        } @else {
+                          Reactivar
+                        }
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+
+  <!-- Modal para confirmar la desactivación -->
+  @if (bankPendingDeactivation(); as bank) {
+    <div
+      class="confirmation-backdrop"
+      role="presentation"
+      (click)="cancelBankDeactivation()"
+    >
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="deactivation-title"
+        aria-describedby="deactivation-description"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="confirmation-dialog__header">
+          <div
+            class="confirmation-dialog__icon"
+            aria-hidden="true"
+          >
+            !
+          </div>
+
+          <h2 id="deactivation-title">
+            Desactivar banco
+          </h2>
+        </div>
+
+        <div class="confirmation-dialog__content">
+          <p id="deactivation-description">
+            ¿Querés desactivar el banco
+            <strong>"{{ bank.name }}"</strong>?
+          </p>
+
+          <p class="confirmation-dialog__detail">
+            El banco dejará de estar disponible para nuevas liquidaciones,
+            pero conservará su información y las liquidaciones históricas
+            asociadas. Podrás reactivarlo posteriormente.
+          </p>
+        </div>
+
+        <div class="confirmation-dialog__actions">
+          <button
+            type="button"
+            class="button button--secondary"
+            (click)="cancelBankDeactivation()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="button button--danger"
+            (click)="confirmBankDeactivation()"
+          >
+            Sí, desactivar
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

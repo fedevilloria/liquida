@@ -4,6 +4,7 @@
 
 Liquida utiliza una arquitectura web cliente-servidor.
 
+```text
 Angular
    │
    │ HTTP / JSON
@@ -13,7 +14,7 @@ NestJS REST API
    │ TypeORM
    ▼
 PostgreSQL
-
+```
 
 La aplicación está dividida en:
 
@@ -33,9 +34,6 @@ La aplicación está dividida en:
 - TypeORM
 - class-validator
 - class-transformer
-- Swagger / OpenAPI 3
-- Jest
-- Supertest
 
 ### Base de datos
 
@@ -44,14 +42,20 @@ La aplicación está dividida en:
 
 ### Frontend
 
-- Angular
+- Angular 22
+- Componentes standalone
+- Angular Router con carga mediante `loadComponent`
+- Signals para estado de interfaz
+- Reactive Forms para formularios administrativos
+- `provideHttpClient()` para comunicación con la API
 
-El frontend será incorporado cuando los principales casos de uso del backend estén funcionando correctamente.
+El frontend se encuentra en desarrollo activo. El layout principal, el dashboard y las pantallas de gestión de grupos y bancos ya están implementados e integrados con la API.
 
 ---
 
 ## 3. Organización del backend
 
+```text
 backend/
 ├── src/
 │   ├── banks/
@@ -66,9 +70,9 @@ backend/
 ├── test/
 ├── .env
 └── package.json
+```
 
-
-### 'groups'
+### `groups`
 
 Responsable de la administración de grupos.
 
@@ -80,34 +84,39 @@ Incluye:
 - Controlador.
 - Módulo.
 
-### 'banks'
+### `banks`
 
 Responsable de la administración de bancos y sus porcentajes de comisión.
 
-### 'commission-calculations'
+### `commission-calculations`
 
-Responsable del registro, cálculo y consulta de las liquidaciones.
+Responsable de:
+
+- Registrar liquidaciones.
+- Calcular porcentajes e importes.
+- Consultar liquidaciones.
+- Filtrar el historial.
+- Obtener estadísticas del dashboard.
+- Obtener rankings de grupos y bancos.
 
 Este módulo contiene la principal lógica de negocio de Liquida.
 
-### 'common'
+### `common`
 
 Contiene elementos reutilizables por diferentes módulos.
 
 Actualmente incluye:
 
-- 'BaseEntity'.
+- `BaseEntity`.
 - Transformador para columnas numéricas de PostgreSQL.
 
-### 'config'
+### `config`
 
 Contiene las configuraciones externas de la aplicación.
 
 Actualmente incluye:
 
-- Validación y tipado de variables de entorno.
 - Configuración de conexión a PostgreSQL.
-- Comportamiento específico según el entorno de ejecución.
 
 ---
 
@@ -127,6 +136,7 @@ Contiene:
 - Validaciones.
 - Coordinación entre repositorios y módulos.
 - Persistencia de entidades.
+- Construcción de consultas dinámicas y agregadas.
 
 ### Repository
 
@@ -135,6 +145,8 @@ Es administrado por TypeORM y permite acceder a PostgreSQL.
 ### DTO
 
 Define y valida los datos que pueden ingresar a través de la API.
+
+También permite definir estructuras de respuesta desacopladas de las entidades persistentes.
 
 ### Entity
 
@@ -146,43 +158,31 @@ Representa la estructura persistente de una tabla de la base de datos.
 
 La conexión con PostgreSQL se construye de forma asíncrona utilizando:
 
-- 'ConfigModule'.
-- 'ConfigService'.
-- 'TypeOrmModule.forRootAsync()'.
+- `ConfigModule`.
+- `ConfigService`.
+- `TypeOrmModule.forRootAsync()`.
 
-Esto garantiza que las variables del archivo '.env' estén cargadas antes de intentar conectarse a la base de datos.
+Esto garantiza que las variables del archivo `.env` estén cargadas antes de intentar conectarse a la base de datos.
 
 Las credenciales no se almacenan dentro del código fuente.
 
-La aplicación valida al iniciar las variables requeridas, entre ellas:
+La configuración se valida al iniciar mediante `env.validation.ts`. Se controlan `NODE_ENV`, `PORT`, las variables `DB_*`, `FRONTEND_URL` y `SWAGGER_ENABLED`.
 
-- `NODE_ENV`.
-- `PORT`.
-- `DB_HOST`.
-- `DB_PORT`.
-- `DB_USERNAME`.
-- `DB_PASSWORD`.
-- `DB_NAME`.
-- `FRONTEND_URL`.
-- `SWAGGER_ENABLED`.
+La sincronización automática del esquema se configura como `synchronize: !isProduction`: permanece disponible para desarrollo y pruebas, pero se desactiva en producción.
 
-El archivo `.env.example` documenta la estructura esperada sin contener credenciales reales.
-
-La sincronización automática del esquema de TypeORM se habilita únicamente fuera de producción. En `production`, `synchronize` permanece desactivado para evitar alteraciones automáticas del esquema.
-
-El origen permitido por CORS se obtiene de `FRONTEND_URL`, lo que permite conectar el frontend sin fijar su dirección dentro del código.
+El origen permitido por CORS se obtiene desde `FRONTEND_URL`, cuyo valor local predeterminado es `http://localhost:4200`.
 
 ---
 
 ## 6. Entidad base
 
-Las entidades principales heredan de 'BaseEntity'.
+Las entidades principales heredan de `BaseEntity`.
 
 Esta clase proporciona:
 
-- 'id'
-- 'createdAt'
-- 'updatedAt'
+- `id`
+- `createdAt`
+- `updatedAt`
 
 Esto evita duplicación y mantiene una estructura temporal consistente.
 
@@ -190,7 +190,7 @@ Esto evita duplicación y mantiene una estructura temporal consistente.
 
 ## 7. Borrado lógico
 
-Los grupos y bancos utilizan el atributo: active
+Los grupos y bancos utilizan el atributo `active`.
 
 Cuando dejan de operar, se los marca como inactivos en lugar de eliminarlos físicamente.
 
@@ -204,35 +204,35 @@ Esto permite:
 
 ## 8. Manejo de decimales
 
-PostgreSQL utiliza columnas 'numeric' para almacenar porcentajes y montos.
+PostgreSQL utiliza columnas `numeric` para almacenar porcentajes y montos.
 
-Como PostgreSQL puede devolver estos valores como texto, Liquida utiliza un 'ValueTransformer' para convertirlos en números de JavaScript.
+Como PostgreSQL puede devolver estos valores como texto, Liquida utiliza un `ValueTransformer` para convertirlos en números de JavaScript.
 
-En las consultas agregadas, los resultados de COUNT, SUM y AVG también se convierten explícitamente antes de construir la respuesta.
+En las consultas agregadas, los resultados de `COUNT`, `SUM` y `AVG` también se convierten explícitamente antes de construir la respuesta.
 
 ---
 
 ## 9. Estrategia de ramas
 
+```text
 main
 └── develop
     ├── feature/database-config
     ├── feature/groups-crud
     ├── feature/banks-crud
     ├── feature/commission-calculations
-    ├── feature/commission-dashboard
-    └── feature/commission-history-pagination
+    └── feature/commission-dashboard
+```
 
-
-### 'main'
+### `main`
 
 Contiene versiones estables.
 
-### 'develop'
+### `develop`
 
 Integra las funcionalidades terminadas.
 
-### 'feature/*'
+### `feature/*`
 
 Contiene el desarrollo aislado de cada funcionalidad.
 
@@ -240,65 +240,18 @@ Contiene el desarrollo aislado de cada funcionalidad.
 
 ## 10. Consulta dinámica del historial
 
-El módulo de liquidaciones implementa consultas dinámicas utilizando QueryBuilder de TypeORM.
+El módulo de liquidaciones implementa consultas dinámicas utilizando `QueryBuilder` de TypeORM.
 
 Esta estrategia permite construir la consulta SQL únicamente con los filtros enviados por el usuario, evitando la creación de múltiples métodos específicos para cada combinación de criterios.
 
-Actualmente el historial admite filtros por:
+Actualmente el historial admite:
 
 - Grupo.
 - Banco.
 - Fecha inicial.
 - Fecha final.
 
-También permite:
-
-- Seleccionar el número de página.
-- Seleccionar la cantidad de registros por página.
-- Ordenar por campos habilitados.
-- Seleccionar orden ascendente o descendente.
-- Combinar filtros, paginación y ordenamiento.
-
-La consulta se ejecuta mediante `getManyAndCount()`.
-
-Este método permite obtener:
-
-- Las liquidaciones correspondientes a la página solicitada.
-- La cantidad total de liquidaciones que cumplen los filtros.
-
-La paginación utiliza:
-
-- `skip()` para establecer la cantidad de registros omitidos.
-- `take()` para limitar la cantidad de registros devueltos.
-- `orderBy()` para aplicar el orden solicitado.
-
-El desplazamiento se calcula mediante:
-
-
-skip = (page - 1) × limit
-
-
-La cantidad total de páginas se calcula mediante:
-
-
-totalPages = Math.ceil(totalItems / limit)
-
-
-La respuesta incluye las liquidaciones y los siguientes metadatos:
-
-- Página actual.
-- Límite aplicado.
-- Cantidad total de registros.
-- Cantidad total de páginas.
-- Existencia de una página anterior.
-- Existencia de una página siguiente.
-
-Por defecto, la consulta utiliza:
-
-- Página 1.
-- Límite de 10 registros.
-- Orden por `calculationDateTime`.
-- Dirección descendente.
+La consulta devuelve los resultados ordenados desde la liquidación más reciente hacia la más antigua.
 
 ---
 
@@ -306,198 +259,77 @@ Por defecto, la consulta utiliza:
 
 El dashboard se implementa mediante tres consultas agregadas independientes:
 
-1- Estadísticas generales.
-2- Grupo con mayor recaudación.
-3- Banco utilizado en la mayor cantidad de liquidaciones.
+1. Estadísticas generales.
+2. Grupo con mayor recaudación.
+3. Banco utilizado en la mayor cantidad de liquidaciones.
 
 Las consultas delegan los cálculos a PostgreSQL mediante:
 
-- COUNT
-- SUM
-- AVG
-- COALESCE
-- GROUP BY
-- ORDER BY
+- `COUNT`
+- `SUM`
+- `AVG`
+- `COALESCE`
+- `GROUP BY`
+- `ORDER BY`
 
 Esta estrategia evita cargar todas las liquidaciones en memoria y permite escalar mejor cuando aumente el volumen de datos.
 
-Los filtros temporales se reutilizan mediante el método privado applyDateFilters(), que recibe un SelectQueryBuilder<CommissionCalculation> y el DTO de filtros.
+Los filtros temporales se reutilizan mediante el método privado `applyDateFilters()`, que recibe un `SelectQueryBuilder<CommissionCalculation>` y el DTO de filtros.
 
 ---
 
-## 12. Transformación de entidades a DTO
+## 12. Arquitectura del frontend
 
-Las entidades de liquidaciones no se devuelven directamente desde la API.
+El frontend conserva la estructura generada por Angular 22 y utiliza componentes standalone.
 
-El servicio transforma las entidades mediante:
+### Layout y navegación
 
+`MainLayout` actúa como contenedor de las páginas de la aplicación y adapta la navegación a distintos tamaños de pantalla.
 
-CommissionCalculationResponseDto.fromEntity()
+Las páginas se resuelven mediante rutas lazy con `loadComponent`, evitando concentrar toda la interfaz en un único componente.
 
+### Estado y comunicación HTTP
 
-Esta transformación se utiliza en:
+El estado de carga, error, mensajes de operación y selección de registros se maneja desde los componentes mediante signals.
 
-- Registro de una liquidación.
-- Consulta de una liquidación por ID.
-- Consulta paginada del historial.
+La comunicación HTTP se habilita con `provideHttpClient()` y se encapsula en servicios del frontend. Entre los servicios existentes se encuentran los responsables de catálogos, liquidaciones y dashboard.
 
-La transformación se realiza en la capa de servicio.
+### Pantallas completadas
 
-El controlador se limita a:
+- Dashboard: métricas, filtro por fechas, estados de carga/error/sin resultados y adaptación responsive.
+- Nueva liquidación: formulario integrado con los catálogos y el endpoint de registro de liquidaciones.
+- Historial de liquidaciones: consulta del historial y consumo de filtros, paginación y ordenamiento provistos por la API.
+- Grupos: alta, edición, listado, desactivación lógica, reactivación y validaciones de formulario.
+- Bancos: alta, edición de nombre y porcentaje, listado, desactivación lógica, reactivación y validaciones de formulario.
 
-- Recibir la solicitud HTTP.
-- Validar los parámetros mediante DTOs.
-- Delegar la operación al servicio.
-- Devolver el resultado.
-
-El flujo general es:
-
-
-Solicitud HTTP
-   │
-   ▼
-Controller
-   │
-   ▼
-DTO de entrada o filtros
-   │
-   ▼
-CommissionCalculationsService
-   │
-   ▼
-Repository / QueryBuilder
-   │
-   ▼
-PostgreSQL
-   │
-   ▼
-Entidad
-   │
-   ▼
-CommissionCalculationResponseDto
-   │
-   ▼
-Respuesta JSON
-
-
-Esta decisión permite:
-
-- Mantener controladores más simples.
-- Evitar duplicación de código.
-- Centralizar el formato de las respuestas.
-- Reducir el acoplamiento entre las entidades y la API.
+Las pantallas administrativas reutilizan un mismo lenguaje visual: tarjetas, formularios, badges de estado, mensajes de éxito/error, confirmaciones para desactivación y adaptación de tablas a dispositivos móviles.
 
 ---
 
-## 13. Estrategia de pruebas unitarias
+## 13. Documentación y ejecución por entorno
 
-El backend utiliza Jest y las herramientas de testing de NestJS para verificar el comportamiento de los servicios y controladores.
+La API expone documentación OpenAPI mediante Swagger cuando `SWAGGER_ENABLED` está habilitado.
 
-Las pruebas unitarias se ejecutan sin conectarse a PostgreSQL.
+En desarrollo local se encuentra disponible en:
 
-Para aislar cada unidad se reemplazan las dependencias externas mediante mocks:
-
-- Repositorios de TypeORM.
-- Servicios utilizados por otros módulos.
-- `QueryBuilder`.
-- Métodos de persistencia y consulta.
-
-### Pruebas del servicio de liquidaciones
-
-`CommissionCalculationsService` cuenta con pruebas unitarias para sus principales métodos públicos:
-
-- `registerCalculation()`.
-- `findOne()`.
-- `findAll()`.
-- `getDashboard()`.
-
-Las pruebas cubren:
-
-- Registro correcto de liquidaciones.
-- Cálculo de porcentajes e importes.
-- Liquidaciones con y sin comisión del cliente.
-- Grupos y bancos inactivos.
-- Grupos, bancos y liquidaciones inexistentes.
-- Validación de la suma de porcentajes.
-- Persistencia mediante `create()` y `save()`.
-- Transformación de entidades a DTO.
-- Filtros por grupo y banco.
-- Combinación de filtros.
-- Filtros por rango de fechas.
-- Validación de períodos.
-- Paginación.
-- Ordenamiento.
-- Estadísticas generales del dashboard.
-- Dashboard sin registros.
-- Rankings de grupos y bancos.
-
-### Fixtures reutilizables
-
-Los datos de prueba repetidos se construyen mediante funciones auxiliares:
-
-- `createRegisterDto()`.
-- `createGroup()`.
-- `createBank()`.
-- `createCalculation()`.
-
-Cada función genera un objeto válido con valores predeterminados y permite reemplazar únicamente las propiedades necesarias para cada escenario.
-
-Ejemplo:
-
-```ts
-const inactiveGroup = createGroup({
-  active: false,
-});
+```text
+http://localhost:3000/api/docs
 ```
 
----
-
-## 14. Documentación OpenAPI
-
-La API se documenta mediante Swagger y OpenAPI 3. Los controladores y DTOs declaran:
-
-- Resumen y descripción de cada operación.
-- Parámetros de ruta y de consulta.
-- Cuerpos de solicitud.
-- Esquemas de respuesta.
-- Ejemplos representativos.
-- Códigos HTTP exitosos y de error.
-
-Cuando `SWAGGER_ENABLED=true`, la interfaz se publica en `/api/docs`. La documentación puede deshabilitarse por entorno sin modificar el código fuente.
+La variable puede deshabilitar la documentación en entornos donde no deba exponerse.
 
 ---
 
-## 15. Pruebas HTTP End-to-End
+## 14. Estrategia de pruebas
 
-Las pruebas E2E levantan una aplicación NestJS aislada y realizan solicitudes HTTP mediante Supertest.
+El backend utiliza pruebas unitarias aisladas mediante mocks de repositorios y `QueryBuilder`, además de una suite E2E para verificar el comportamiento HTTP.
 
-Estas pruebas verifican el contrato externo de la API, incluyendo:
-
-- Consulta de grupos.
-- Consulta de bancos.
-- Historial paginado de liquidaciones.
-- Estadísticas del dashboard.
-- Rechazo de parámetros de paginación inválidos.
-- Rechazo de campos desconocidos.
-
-Los servicios se reemplazan mediante mocks para mantener las pruebas rápidas y deterministas. El servidor HTTP se tipa explícitamente para conservar compatibilidad con las reglas estrictas de ESLint y TypeScript.
-
----
-
-## 16. Verificación de calidad
-
-Antes de cerrar una versión del backend se ejecutan los siguientes controles:
+Los comandos de verificación utilizados son:
 
 ```bash
-npm run lint
 npm run build
 npm test
 npm run test:e2e
 ```
 
-El cierre actual fue verificado con:
-
-- ESLint sin errores ni advertencias.
-- Compilación correcta.
-- 6 suites y 73 pruebas unitarias aprobadas.
-- 1 suite y 6 pruebas E2E aprobadas.
+Las pruebas no requieren modificar los datos productivos y la configuración de entorno distingue desarrollo, test y producción.

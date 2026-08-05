@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import {
   Bank,
+  BankRequest,
   Group,
   GroupRequest,
 } from '../models/catalog.model';
@@ -73,8 +74,52 @@ export class CatalogService {
 
   /**
    * Obtiene todos los bancos registrados.
+   *
+   * Incluye tanto los bancos activos como los inactivos,
+   * por lo que se utiliza en la pantalla administrativa.
    */
   getBanks(): Observable<Bank[]> {
     return this.http.get<Bank[]>(this.banksUrl);
+  }
+
+  /**
+   * Obtiene únicamente los bancos activos.
+   *
+   * Se utiliza en los campos donde solamente pueden seleccionarse
+   * bancos disponibles para nuevas liquidaciones.
+   */
+  getActiveBanks(): Observable<Bank[]> {
+    return this.http.get<Bank[]>(`${this.banksUrl}/active`);
+  }
+
+  /**
+   * Registra un nuevo banco.
+   */
+  createBank(bank: BankRequest): Observable<Bank> {
+    return this.http.post<Bank>(this.banksUrl, bank);
+  }
+
+  /**
+   * Modifica los datos de un banco existente.
+   */
+  updateBank(id: number, bank: BankRequest): Observable<Bank> {
+    return this.http.patch<Bank>(`${this.banksUrl}/${id}`, bank);
+  }
+
+  /**
+   * Desactiva un banco sin eliminar su información histórica.
+   */
+  deactivateBank(id: number): Observable<Bank> {
+    return this.http.delete<Bank>(`${this.banksUrl}/${id}`);
+  }
+
+  /**
+   * Reactiva un banco previamente desactivado.
+   */
+  restoreBank(id: number): Observable<Bank> {
+    return this.http.patch<Bank>(
+      `${this.banksUrl}/${id}/restore`,
+      {},
+    );
   }
 }

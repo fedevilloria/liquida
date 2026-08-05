@@ -2,9 +2,9 @@
 
 ## 1. Vista general
 
-
+```text
 Group 1 ─────── N CommissionCalculation N ─────── 1 Bank
-
+```
 
 Un grupo puede tener múltiples liquidaciones.
 
@@ -32,9 +32,7 @@ Representa un grupo asociado a una recaudación.
 
 ### Tabla
 
-
-groups
-
+`groups`
 
 | Campo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -58,9 +56,7 @@ Representa un banco o medio utilizado para recibir una recaudación.
 
 ### Tabla
 
-
-banks
-
+`banks`
 
 | Campo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
@@ -85,9 +81,7 @@ Representa una liquidación individual de comisión.
 
 ### Tabla
 
-
-commission_calculations
-
+`commission_calculations`
 
 | Campo | Tipo | Nulo | Descripción |
 |---|---|---:|---|
@@ -110,45 +104,45 @@ commission_calculations
 
 ### Relaciones
 
-
+```text
 CommissionCalculation.groupId → Group.id
 CommissionCalculation.bankId  → Bank.id
-
+```
 
 Las relaciones utilizan `RESTRICT` ante eliminaciones físicas.
 
 ---
 
-## 6. Fórmulas previstas
+## 6. Fórmulas
 
-
+```text
 ownCommissionPercentage =
 totalCommissionPercentage
 - bankCommissionPercentage
 - clientCommissionPercentage
+```
 
-
-
+```text
 totalCommissionAmount =
 collectionAmount × totalCommissionPercentage / 100
+```
 
-
-
+```text
 bankCommissionAmount =
 collectionAmount × bankCommissionPercentage / 100
+```
 
-
-
+```text
 clientCommissionAmount =
 collectionAmount × clientCommissionPercentage / 100
+```
 
-
-
+```text
 ownCommissionAmount =
 collectionAmount × ownCommissionPercentage / 100
+```
 
-
-Cuando no existe comisión del cliente, se utilizará cero para realizar las operaciones.
+Cuando no existe comisión del cliente, se utiliza cero para realizar las operaciones.
 
 ---
 
@@ -156,23 +150,23 @@ Cuando no existe comisión del cliente, se utilizará cero para realizar las ope
 
 El dashboard no incorpora nuevas tablas ni columnas.
 
-Las métricas se calculan dinámicamente a partir de commission_calculations mediante consultas agregadas.
+Las métricas se calculan dinámicamente a partir de `commission_calculations` mediante consultas agregadas.
 
-Estadísticas generales:
+### Estadísticas generales
 
-- Cantidad de liquidaciones: COUNT(id).
-- Recaudación total: SUM(collectionAmount).
-- Comisión total: SUM(totalCommissionAmount).
-- Comisión bancaria: SUM(bankCommissionAmount).
-- Comisión del cliente: SUM(clientCommissionAmount).
-- Comisión propia: SUM(ownCommissionAmount).
-- Recaudación promedio: AVG(collectionAmount).
+- Cantidad de liquidaciones: `COUNT(id)`.
+- Recaudación total: `SUM(collectionAmount)`.
+- Comisión total: `SUM(totalCommissionAmount)`.
+- Comisión bancaria: `SUM(bankCommissionAmount)`.
+- Comisión del cliente: `SUM(clientCommissionAmount)`.
+- Comisión propia: `SUM(ownCommissionAmount)`.
+- Recaudación promedio: `AVG(collectionAmount)`.
 
-COALESCE se utiliza para devolver cero cuando no existen registros en el período consultado.
+`COALESCE` se utiliza para devolver cero cuando no existen registros en el período consultado.
 
 ### Grupo con mayor recaudación
 
-Las liquidaciones se agrupan por grupo y se suma collectionAmount.
+Las liquidaciones se agrupan por grupo y se suma `collectionAmount`.
 
 El resultado se ordena de mayor a menor y se selecciona el primer registro.
 
@@ -185,14 +179,15 @@ El resultado se ordena de mayor a menor y se selecciona el primer registro.
 ### Filtros temporales
 
 Las consultas pueden limitarse mediante:
-- from: inicio completo del día indicado.
-- to: final completo del día indicado.
+
+- `from`: inicio completo del día indicado.
+- `to`: final completo del día indicado.
 
 ---
 
 ## 8. Estado de implementación
 
-Actualmente la entidad CommissionCalculation permite:
+Actualmente la entidad `CommissionCalculation` permite:
 
 - Registrar una liquidación individual.
 - Conservar una copia histórica de los porcentajes utilizados.
@@ -201,119 +196,16 @@ Actualmente la entidad CommissionCalculation permite:
 - Registrar observaciones opcionales.
 - Registrar la fecha y hora de corte utilizada para la liquidación.
 - Consultar el historial mediante filtros.
-- Paginar el historial.
-- Ordenar el historial.
-- Combinar filtros, paginación y ordenamiento.
 - Obtener estadísticas y rankings sin modificar el modelo persistente.
 
 ---
 
-## 9. Paginación y ordenamiento del historial
+## 9. Impacto del frontend sobre el modelo de datos
 
-La incorporación de paginación y ordenamiento no requirió modificar el modelo persistente.
+La incorporación del frontend no requirió nuevas tablas ni columnas.
 
-No se agregaron:
+Las pantallas de grupos, bancos y dashboard consumen el modelo existente exclusivamente a través de la API REST.
 
-- Tablas.
-- Columnas.
-- Relaciones.
-- Restricciones.
-- Migraciones.
+La edición del porcentaje de comisión de un banco modifica `Bank.commissionPercentage` para operaciones futuras. Las liquidaciones previamente registradas conservan su copia histórica en `CommissionCalculation.bankCommissionPercentage` y sus importes calculados.
 
-La funcionalidad se implementa en la capa de consulta mediante QueryBuilder de TypeORM.
-
-### Operaciones utilizadas
-
-- `ORDER BY`: ordena los resultados.
-- `OFFSET`: omite los registros pertenecientes a páginas anteriores.
-- `LIMIT`: limita la cantidad de registros devueltos.
-- `COUNT`: determina la cantidad total de registros que cumplen los filtros.
-
-En TypeORM estas operaciones se aplican mediante:
-
-- `orderBy()`.
-- `skip()`.
-- `take()`.
-- `getManyAndCount()`.
-
-### Conteo de registros
-
-El total de registros considera los filtros aplicados.
-
-Por ejemplo, cuando se filtra por grupo, `totalItems` representa únicamente la cantidad de liquidaciones correspondientes a ese grupo.
-
-### Relaciones utilizadas
-
-Los filtros por grupo y banco utilizan las relaciones existentes:
-
-
-CommissionCalculation.groupId → Group.id
-CommissionCalculation.bankId  → Bank.id
-
-
-Los filtros por fecha y el orden cronológico utilizan:
-
-
-CommissionCalculation.calculationDateTime
-
-
-### Consideración de rendimiento
-
-Cuando el volumen de liquidaciones aumente, se deberá analizar el rendimiento de las consultas.
-
-En caso de resultar necesario, podrán incorporarse índices sobre campos utilizados frecuentemente para filtrar u ordenar, como:
-
-- `calculationDateTime`.
-- `collectionAmount`.
-- `groupId`.
-- `bankId`.
-
-Los índices deberán incorporarse únicamente después de medir el comportamiento real de las consultas.
-
----
-
-## 10. Impacto de las pruebas unitarias sobre la base de datos
-
-La incorporación de pruebas unitarias no requirió modificaciones en el modelo persistente.
-
-No se agregaron:
-
-- Tablas.
-- Columnas.
-- Relaciones.
-- Restricciones.
-- Índices.
-- Migraciones.
-
-Los repositorios de TypeORM se reemplazan mediante mocks durante la ejecución de las pruebas.
-
-Por este motivo, las pruebas unitarias:
-
-- No se conectan a PostgreSQL.
-- No insertan registros reales.
-- No modifican liquidaciones existentes.
-- No dependen del estado actual de la base de datos.
-- Pueden ejecutarse de forma repetible y aislada.
-
-Las operaciones simuladas incluyen:
-
-- `create()`.
-- `save()`.
-- `findOne()`.
-- `createQueryBuilder()`.
-- `getManyAndCount()`.
-- `getRawOne()`.
-
-Las pruebas verifican que el servicio invoque correctamente estas operaciones, pero no ejecutan SQL real.
-
----
-
-## 11. Configuración del esquema por entorno
-
-La conexión de TypeORM se construye a partir de variables de entorno validadas al iniciar la aplicación.
-
-Durante el desarrollo, la sincronización automática puede mantenerse habilitada para facilitar la evolución inicial del modelo. En producción, `synchronize` se desactiva automáticamente para impedir que TypeORM modifique el esquema sin un procedimiento controlado.
-
-Esta decisión no modifica las tablas actuales, pero protege la integridad del modelo desplegado. Como evolución futura, los cambios estructurales deberán administrarse mediante migraciones versionadas.
-
-Las credenciales reales de PostgreSQL se conservan en archivos `.env` excluidos del repositorio. El archivo `.env.example` documenta únicamente los nombres y valores de referencia necesarios para configurar una instalación.
+La integración fue verificada modificando el porcentaje de un banco y comprobando que una nueva liquidación utiliza el valor actualizado.
