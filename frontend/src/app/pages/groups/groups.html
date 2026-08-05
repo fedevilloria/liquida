@@ -1,1 +1,307 @@
-<p>groups works!</p>
+<section class="groups-page">
+  <header class="groups-page__header">
+    <div>
+      <p class="groups-page__eyebrow">Catálogo</p>
+      <h1 class="groups-page__title">Gestión de grupos</h1>
+      <p class="groups-page__description">
+        Creá, modificá y administrá los grupos disponibles para las liquidaciones.
+      </p>
+    </div>
+  </header>
+
+  <div class="groups-page__content">
+    <section class="group-form-card">
+      <div class="group-form-card__header">
+        <h2>
+          {{ isEditing() ? 'Editar grupo' : 'Nuevo grupo' }}
+        </h2>
+
+        <p>
+          @if (isEditing()) {
+            Modificá el nombre del grupo seleccionado.
+          } @else {
+            Ingresá el nombre del grupo que querés registrar.
+          }
+        </p>
+      </div>
+
+      <form
+        class="group-form"
+        [formGroup]="groupForm"
+        (ngSubmit)="submitGroup()"
+      >
+        <div class="group-form__field">
+          <label for="group-name">Nombre del grupo</label>
+
+          <input
+            id="group-name"
+            type="text"
+            formControlName="name"
+            maxlength="100"
+            autocomplete="off"
+            placeholder="Ej.: Grupo Norte"
+          />
+
+          <div class="group-form__field-footer">
+            <div>
+              @if (
+                groupForm.controls.name.touched &&
+                groupForm.controls.name.hasError('required')
+              ) {
+                <p class="field-error">
+                  El nombre del grupo es obligatorio.
+                </p>
+              }
+
+              @if (
+                groupForm.controls.name.touched &&
+                groupForm.controls.name.hasError('maxlength')
+              ) {
+                <p class="field-error">
+                  El nombre no puede superar los 100 caracteres.
+                </p>
+              }
+            </div>
+
+            <span class="character-counter">
+              {{ groupForm.controls.name.value.length }}/100
+            </span>
+          </div>
+        </div>
+
+        <div class="group-form__actions">
+          <button
+            type="submit"
+            class="button button--primary"
+            [disabled]="isSaving()"
+          >
+            @if (isSaving()) {
+              Guardando...
+            } @else if (isEditing()) {
+              Guardar cambios
+            } @else {
+              Crear grupo
+            }
+          </button>
+
+          @if (isEditing()) {
+            <button
+              type="button"
+              class="button button--secondary"
+              [disabled]="isSaving()"
+              (click)="cancelEditing()"
+            >
+              Cancelar
+            </button>
+          }
+        </div>
+      </form>
+    </section>
+
+    <section class="groups-list-card">
+      <div class="groups-list-card__header">
+        <div>
+          <h2>Grupos registrados</h2>
+          <p>Los grupos activos aparecen primero.</p>
+        </div>
+
+        @if (!isLoading()) {
+          <span class="groups-count">
+            {{ groups().length }}
+            {{ groups().length === 1 ? 'grupo' : 'grupos' }}
+          </span>
+        }
+      </div>
+
+      @if (successMessage()) {
+        <div
+          class="message message--success"
+          role="status"
+          aria-live="polite"
+        >
+          {{ successMessage() }}
+        </div>
+      }
+
+      @if (errorMessage() && !isLoading()) {
+        <div
+          class="message message--error"
+          role="alert"
+        >
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (isLoading()) {
+        <div class="status-panel" aria-live="polite">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <p>Cargando grupos...</p>
+        </div>
+      } @else if (errorMessage() && groups().length === 0) {
+        <div class="status-panel status-panel--error">
+          <h3>No pudimos cargar los grupos</h3>
+          <p>{{ errorMessage() }}</p>
+
+          <button
+            type="button"
+            class="button button--primary"
+            (click)="retry()"
+          >
+            Reintentar
+          </button>
+        </div>
+      } @else if (groups().length === 0) {
+        <div class="status-panel">
+          <h3>Todavía no hay grupos</h3>
+          <p>Registrá el primer grupo utilizando el formulario.</p>
+        </div>
+      } @else {
+        <div class="groups-table-container">
+          <table class="groups-table">
+            <thead>
+              <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="groups-table__actions-heading">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (group of groups(); track group.id) {
+                <tr [class.groups-table__row--inactive]="!group.active">
+                  <td data-label="Nombre">
+                    <strong class="groups-table__name">
+                      {{ group.name }}
+                    </strong>
+                  </td>
+
+                  <td data-label="Estado">
+                    <span
+                      class="status-badge"
+                      [class.status-badge--active]="group.active"
+                      [class.status-badge--inactive]="!group.active"
+                    >
+                      {{ group.active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+
+                  <td
+                    data-label="Acciones"
+                    class="groups-table__actions"
+                  >
+                    <button
+                      type="button"
+                      class="action-button action-button--edit"
+                      [disabled]="
+                        isSaving() ||
+                        processingGroupId() !== null ||
+                        !group.active
+                      "
+                      (click)="startEditing(group)"
+                    >
+                      Editar
+                    </button>
+
+                    @if (group.active) {
+                      <button
+                        type="button"
+                        class="action-button action-button--deactivate"
+                        [disabled]="
+                          isSaving() ||
+                          processingGroupId() !== null
+                        "
+                        (click)="requestGroupDeactivation(group)"
+                      >
+                        @if (processingGroupId() === group.id) {
+                          Desactivando...
+                        } @else {
+                          Desactivar
+                        }
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="action-button action-button--restore"
+                        [disabled]="
+                          isSaving() ||
+                          processingGroupId() !== null
+                        "
+                        (click)="restoreGroup(group)"
+                      >
+                        @if (processingGroupId() === group.id) {
+                          Reactivando...
+                        } @else {
+                          Reactivar
+                        }
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+
+  @if (groupPendingDeactivation(); as group) {
+  <div
+    class="confirmation-backdrop"
+    role="presentation"
+    (click)="cancelGroupDeactivation()"
+  >
+    <section
+      class="confirmation-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="deactivation-title"
+      aria-describedby="deactivation-description"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="confirmation-dialog__header">
+        <div class="confirmation-dialog__icon" aria-hidden="true">
+            !
+        </div>
+
+        <h2 id="deactivation-title">
+            Desactivar grupo
+        </h2>
+        </div>
+
+        <div class="confirmation-dialog__content">
+
+            <p id="deactivation-description">
+            ¿Querés desactivar el grupo
+            <strong>"{{ group.name }}"</strong>?
+            </p>
+
+            <p class="confirmation-dialog__detail">
+            El grupo dejará de estar disponible para nuevas liquidaciones,
+            pero conservará su información y podrás reactivarlo posteriormente.
+            </p>
+        </div>
+
+        <div class="confirmation-dialog__actions">
+            <button
+            type="button"
+            class="button button--secondary"
+            (click)="cancelGroupDeactivation()"
+            >
+            Cancelar
+            </button>
+
+            <button
+            type="button"
+            class="button button--danger"
+            (click)="confirmGroupDeactivation()"
+            >
+            Sí, desactivar
+            </button>
+        </div>
+        </section>
+    </div>
+    }
+</section>

@@ -10,6 +10,13 @@ export interface Group {
 }
 
 /**
+ * Representa los datos enviados al crear o modificar un grupo.
+ */
+export interface GroupRequest {
+  name: string;
+}
+
+/**
  * Representa un banco disponible en el sistema.
  */
 export interface Bank {
