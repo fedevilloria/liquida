@@ -1,11 +1,15 @@
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 
 import { BaseEntity } from '../../common/entities/base.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { UserStatus } from '../enums/user-status.enum';
 
 @Entity('users')
+@Index('UQ_users_single_superuser', ['role'], {
+  unique: true,
+  where: `"role" = 'superuser'`,
+})
 export class User extends BaseEntity {
   /**
    * Nombre que se mostrará dentro de Liquida.
