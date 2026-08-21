@@ -160,4 +160,17 @@ export class UsersService {
       throw error;
     }
   }
+
+  /**
+   * Busca un usuario por su correo normalizado.
+   *
+   * Se utiliza internamente en los flujos de autenticación.
+   */
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: {
+        email: email.trim().toLowerCase(),
+      },
+    });
+  }
 }

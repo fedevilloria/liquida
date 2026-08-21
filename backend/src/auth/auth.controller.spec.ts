@@ -8,6 +8,8 @@ describe('AuthController', () => {
 
   const authServiceMock = {
     register: jest.fn(),
+    verifyEmail: jest.fn(),
+    resendVerificationEmail: jest.fn(),
   };
 
   beforeEach(async () => {

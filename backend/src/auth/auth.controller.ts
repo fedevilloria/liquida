@@ -1,15 +1,20 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiOperation,
   ApiTags,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
-import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { RegisterUserResponseDto } from './dto/register-user-response.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { VerifyEmailResponseDto } from './dto/verify-email-response.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { ResendVerificationResponseDto } from './dto/resend-verification-response.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -28,7 +33,7 @@ export class AuthController {
   })
   @ApiCreatedResponse({
     description: 'La cuenta fue registrada correctamente.',
-    type: AuthUserResponseDto,
+    type: RegisterUserResponseDto,
   })
   @ApiBadRequestResponse({
     description: 'Los datos enviados no cumplen las validaciones.',
@@ -39,7 +44,50 @@ export class AuthController {
   @Post('register')
   register(
     @Body() registerUserDto: RegisterUserDto,
-  ): Promise<AuthUserResponseDto> {
+  ): Promise<RegisterUserResponseDto> {
     return this.authService.register(registerUserDto);
+  }
+
+  @ApiOperation({
+    summary: 'Verificar un correo electrónico',
+    description:
+      'Consume el token recibido por correo y deja la cuenta pendiente de aprobación.',
+  })
+  @ApiOkResponse({
+    description: 'El correo fue verificado correctamente.',
+    type: VerifyEmailResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'El token es inválido, venció o ya fue utilizado.',
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email')
+  verifyEmail(
+    @Body() verifyEmailDto: VerifyEmailDto,
+  ): Promise<VerifyEmailResponseDto> {
+    return this.authService.verifyEmail(verifyEmailDto.token);
+  }
+
+  @ApiOperation({
+    summary: 'Reenviar el correo de verificación',
+    description:
+      'Genera un nuevo enlace para una cuenta pendiente de verificar.',
+  })
+  @ApiOkResponse({
+    description:
+      'La solicitud de reenvío fue procesada con una respuesta neutral.',
+    type: ResendVerificationResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'El correo enviado no tiene un formato válido.',
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('resend-verification')
+  resendVerification(
+    @Body() resendVerificationDto: ResendVerificationDto,
+  ): Promise<ResendVerificationResponseDto> {
+    return this.authService.resendEmailVerification(
+      resendVerificationDto.email,
+    );
   }
 }
