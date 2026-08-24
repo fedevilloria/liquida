@@ -2,11 +2,18 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  /**
+   * Permite leer cookies firmadas o normales
+   * desde los controladores y guards.
+   */
+  app.use(cookieParser());
 
   const configService = app.get(ConfigService);
 
@@ -56,6 +63,7 @@ async function bootstrap() {
         'API REST para la gestión de grupos, bancos y liquidaciones de comisiones.',
       )
       .setVersion('1.0.0')
+      .addBearerAuth()
       .build();
 
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);

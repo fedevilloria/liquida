@@ -7,6 +7,9 @@ import { EmailVerificationService } from './email-verification.service';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/enums/user-role.enum';
 import { UserStatus } from '../users/enums/user-status.enum';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { SessionService } from './session.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -14,6 +17,7 @@ describe('AuthService', () => {
   const usersServiceMock = {
     createPendingUser: jest.fn(),
     findByEmail: jest.fn(),
+    findByEmailWithPassword: jest.fn(),
   };
 
   const emailVerificationServiceMock = {
@@ -24,6 +28,20 @@ describe('AuthService', () => {
 
   const emailServiceMock = {
     sendEmailVerification: jest.fn(),
+  };
+
+  const sessionServiceMock = {
+    createForUser: jest.fn(),
+    rotate: jest.fn(),
+    revoke: jest.fn(),
+  };
+
+  const jwtServiceMock = {
+    signAsync: jest.fn(),
+  };
+
+  const configServiceMock = {
+    getOrThrow: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -43,6 +61,18 @@ describe('AuthService', () => {
         {
           provide: EmailService,
           useValue: emailServiceMock,
+        },
+        {
+          provide: SessionService,
+          useValue: sessionServiceMock,
+        },
+        {
+          provide: JwtService,
+          useValue: jwtServiceMock,
+        },
+        {
+          provide: ConfigService,
+          useValue: configServiceMock,
         },
       ],
     }).compile();
@@ -138,5 +168,71 @@ describe('AuthService', () => {
     ).not.toHaveBeenCalled();
 
     expect(emailServiceMock.sendEmailVerification).not.toHaveBeenCalled();
+  });
+
+  it('should rotate the session and issue a new access token', async () => {
+    const activeUser = {
+      ...pendingUser,
+      status: UserStatus.ACTIVE,
+      emailVerifiedAt: new Date(),
+      approvedAt: new Date(),
+    } as User;
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    sessionServiceMock.rotate.mockResolvedValue({
+      session: {
+        id: 30,
+        userId: activeUser.id,
+        user: activeUser,
+        expiresAt,
+        revokedAt: null,
+      },
+      user: activeUser,
+      refreshToken: 'nuevo-refresh-token',
+      expiresAt,
+    });
+
+    jwtServiceMock.signAsync.mockResolvedValue('nuevo-access-token');
+    configServiceMock.getOrThrow.mockReturnValue(900);
+
+    const result = await service.refresh('refresh-token-anterior', {
+      userAgent: 'Jest',
+      ipAddress: '127.0.0.1',
+    });
+
+    expect(sessionServiceMock.rotate).toHaveBeenCalledWith(
+      'refresh-token-anterior',
+      {
+        userAgent: 'Jest',
+        ipAddress: '127.0.0.1',
+      },
+    );
+
+    expect(jwtServiceMock.signAsync).toHaveBeenCalledWith({
+      sub: activeUser.id,
+      email: activeUser.email,
+      role: activeUser.role,
+      sessionId: 30,
+    });
+
+    expect(result.response.accessToken).toBe('nuevo-access-token');
+    expect(result.response.expiresIn).toBe(900);
+    expect(result.refreshToken).toBe('nuevo-refresh-token');
+    expect(result.refreshTokenExpiresAt).toBe(expiresAt);
+  });
+
+  it('should revoke the refresh token during logout', async () => {
+    sessionServiceMock.revoke.mockResolvedValue(undefined);
+
+    await service.logout('refresh-token');
+
+    expect(sessionServiceMock.revoke).toHaveBeenCalledWith('refresh-token');
+  });
+
+  it('should allow an idempotent logout without a refresh token', async () => {
+    await service.logout(undefined);
+
+    expect(sessionServiceMock.revoke).not.toHaveBeenCalled();
   });
 });

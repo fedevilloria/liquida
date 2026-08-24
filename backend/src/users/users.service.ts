@@ -173,4 +173,20 @@ export class UsersService {
       },
     });
   }
+
+  /**
+   * Busca un usuario incluyendo el hash de contraseña.
+   *
+   * Este método se utiliza exclusivamente durante el login,
+   * porque passwordHash tiene select: false.
+   */
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', {
+        email: email.trim().toLowerCase(),
+      })
+      .getOne();
+  }
 }

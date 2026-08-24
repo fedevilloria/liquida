@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as argon2 from 'argon2';
 
 import { UsersService } from '../users/users.service';
@@ -11,6 +16,19 @@ import { VerifyEmailResponseDto } from './dto/verify-email-response.dto';
 import { UserStatus } from '../users/enums/user-status.enum';
 import { ResendVerificationResponseDto } from './dto/resend-verification-response.dto';
 
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
+import { LoginDto } from './dto/login.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
+import { SessionMetadata, SessionService } from './session.service';
+
+export interface LoginResult {
+  response: LoginResponseDto;
+  refreshToken: string;
+  refreshTokenExpiresAt: Date;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -19,6 +37,9 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly emailVerificationService: EmailVerificationService,
     private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly sessionService: SessionService,
   ) {}
 
   /**
@@ -138,5 +159,131 @@ export class AuthService {
     }
 
     return genericResponse;
+  }
+
+  /**
+   * Valida las credenciales y crea una sesión.
+   */
+  async login(
+    loginDto: LoginDto,
+    metadata: SessionMetadata,
+  ): Promise<LoginResult> {
+    const user = await this.usersService.findByEmailWithPassword(
+      loginDto.email,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'El correo o la contraseña son incorrectos.',
+      );
+    }
+
+    const passwordMatches = await argon2.verify(
+      user.passwordHash,
+      loginDto.password,
+    );
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException(
+        'El correo o la contraseña son incorrectos.',
+      );
+    }
+
+    this.validateUserCanLogin(user.status);
+
+    const createdSession = await this.sessionService.createForUser(
+      user,
+      metadata,
+    );
+
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: createdSession.session.id,
+    });
+
+    const expiresIn = this.configService.getOrThrow<number>(
+      'JWT_ACCESS_EXPIRES_SECONDS',
+    );
+
+    return {
+      response: {
+        accessToken,
+        expiresIn,
+        user: AuthUserResponseDto.fromEntity(user),
+      },
+      refreshToken: createdSession.refreshToken,
+      refreshTokenExpiresAt: createdSession.expiresAt,
+    };
+  }
+
+  /**
+   * Solamente las cuentas activas pueden iniciar sesión.
+   */
+  private validateUserCanLogin(status: UserStatus): void {
+    switch (status) {
+      case UserStatus.ACTIVE:
+        return;
+
+      case UserStatus.PENDING_EMAIL_VERIFICATION:
+        throw new ForbiddenException(
+          'Debés verificar tu correo antes de iniciar sesión.',
+        );
+
+      case UserStatus.PENDING_APPROVAL:
+        throw new ForbiddenException('Tu cuenta está pendiente de aprobación.');
+
+      case UserStatus.REJECTED:
+        throw new ForbiddenException('La solicitud de acceso fue rechazada.');
+
+      case UserStatus.SUSPENDED:
+        throw new ForbiddenException('La cuenta se encuentra suspendida.');
+    }
+  }
+
+  /**
+   * Rota el refresh token y genera un access token nuevo.
+   */
+  async refresh(
+    refreshToken: string,
+    metadata: SessionMetadata,
+  ): Promise<LoginResult> {
+    const rotatedSession = await this.sessionService.rotate(
+      refreshToken,
+      metadata,
+    );
+
+    const accessToken = await this.jwtService.signAsync({
+      sub: rotatedSession.user.id,
+      email: rotatedSession.user.email,
+      role: rotatedSession.user.role,
+      sessionId: rotatedSession.session.id,
+    });
+
+    const expiresIn = this.configService.getOrThrow<number>(
+      'JWT_ACCESS_EXPIRES_SECONDS',
+    );
+
+    return {
+      response: {
+        accessToken,
+        expiresIn,
+        user: AuthUserResponseDto.fromEntity(rotatedSession.user),
+      },
+      refreshToken: rotatedSession.refreshToken,
+      refreshTokenExpiresAt: rotatedSession.expiresAt,
+    };
+  }
+
+  /**
+   * Revoca la sesión asociada al refresh token.
+   */
+  async logout(refreshToken?: string): Promise<void> {
+    if (!refreshToken) {
+      return;
+    }
+
+    await this.sessionService.revoke(refreshToken);
   }
 }
