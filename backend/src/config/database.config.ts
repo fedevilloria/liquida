@@ -44,9 +44,11 @@ export const createDatabaseConfig = (
     synchronize: !isProduction,
 
     /**
-     * Muestra consultas y errores de base de datos
-     * únicamente fuera del entorno productivo.
+     * Registra errores y cambios del esquema sin mostrar
+     * consultas completas ni parámetros potencialmente sensibles.
      */
-    logging: !isProduction,
+    logging: isProduction
+      ? ['error']
+      : ['error', 'warn', 'schema', 'migration'],
   };
 };

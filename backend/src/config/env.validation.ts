@@ -142,5 +142,49 @@ export const validateEnvironment = (
       'SWAGGER_ENABLED',
       nodeEnv !== 'production',
     ),
+
+    EMAIL_VERIFICATION_EXPIRES_HOURS: parseInteger(
+      config.EMAIL_VERIFICATION_EXPIRES_HOURS,
+      'EMAIL_VERIFICATION_EXPIRES_HOURS',
+      24,
+    ),
+
+    EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS: parseInteger(
+      config.EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS,
+      'EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS',
+      60,
+    ),
+
+    SMTP_HOST: requireString(config, 'SMTP_HOST'),
+
+    SMTP_PORT: parseInteger(config.SMTP_PORT, 'SMTP_PORT', 587),
+
+    SMTP_SECURE: parseBoolean(config.SMTP_SECURE, 'SMTP_SECURE', false),
+
+    SMTP_USER: requireString(config, 'SMTP_USER'),
+
+    SMTP_PASSWORD: requireString(config, 'SMTP_PASSWORD'),
+
+    SMTP_FROM: requireString(config, 'SMTP_FROM'),
+
+    JWT_ACCESS_SECRET: requireString(config, 'JWT_ACCESS_SECRET'),
+
+    JWT_ACCESS_EXPIRES_SECONDS: parseInteger(
+      config.JWT_ACCESS_EXPIRES_SECONDS,
+      'JWT_ACCESS_EXPIRES_SECONDS',
+      900,
+    ),
+
+    AUTH_REFRESH_EXPIRES_DAYS: parseInteger(
+      config.AUTH_REFRESH_EXPIRES_DAYS,
+      'AUTH_REFRESH_EXPIRES_DAYS',
+      7,
+    ),
+
+    AUTH_REFRESH_COOKIE_NAME:
+      typeof config.AUTH_REFRESH_COOKIE_NAME === 'string' &&
+      config.AUTH_REFRESH_COOKIE_NAME.trim().length > 0
+        ? config.AUTH_REFRESH_COOKIE_NAME.trim()
+        : 'liquida_refresh_token',
   };
 };

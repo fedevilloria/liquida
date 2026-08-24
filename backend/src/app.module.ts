@@ -7,6 +7,8 @@ import { CommissionCalculationsModule } from './commission-calculations/commissi
 import { createDatabaseConfig } from './config/database.config';
 import { validateEnvironment } from './config/env.validation';
 import { GroupsModule } from './groups/groups.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,6 +40,12 @@ import { GroupsModule } from './groups/groups.module';
 
     // Módulo encargado del registro y consulta de liquidaciones.
     CommissionCalculationsModule,
+
+    // Módulo encargado de los usuarios y el control de accesos.
+    UsersModule,
+
+    // Módulo encargado de la autenticación y registro de usuarios.
+    AuthModule,
   ],
 })
 export class AppModule {}
