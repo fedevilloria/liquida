@@ -166,5 +166,25 @@ export const validateEnvironment = (
     SMTP_PASSWORD: requireString(config, 'SMTP_PASSWORD'),
 
     SMTP_FROM: requireString(config, 'SMTP_FROM'),
+
+    JWT_ACCESS_SECRET: requireString(config, 'JWT_ACCESS_SECRET'),
+
+    JWT_ACCESS_EXPIRES_SECONDS: parseInteger(
+      config.JWT_ACCESS_EXPIRES_SECONDS,
+      'JWT_ACCESS_EXPIRES_SECONDS',
+      900,
+    ),
+
+    AUTH_REFRESH_EXPIRES_DAYS: parseInteger(
+      config.AUTH_REFRESH_EXPIRES_DAYS,
+      'AUTH_REFRESH_EXPIRES_DAYS',
+      7,
+    ),
+
+    AUTH_REFRESH_COOKIE_NAME:
+      typeof config.AUTH_REFRESH_COOKIE_NAME === 'string' &&
+      config.AUTH_REFRESH_COOKIE_NAME.trim().length > 0
+        ? config.AUTH_REFRESH_COOKIE_NAME.trim()
+        : 'liquida_refresh_token',
   };
 };
